@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://BravestSnail.github.io</id>
+    <title>BreavestSnail</title>
+    <updated>2023-03-27T14:04:26.210Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://BravestSnail.github.io"/>
+    <link rel="self" href="https://BravestSnail.github.io/atom.xml"/>
+    <subtitle>温故而知新</subtitle>
+    <logo>https://BravestSnail.github.io/images/avatar.png</logo>
+    <icon>https://BravestSnail.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2023, BreavestSnail</rights>
+    <entry>
+        <title type="html"><![CDATA[关于Kotlin构造函数、init函数和变量初始化的顺序探究]]></title>
+        <id>https://BravestSnail.github.io/post/关于Kotlin构造函数、init函数和属性初始化的顺序探究/</id>
+        <link href="https://BravestSnail.github.io/post/关于Kotlin构造函数、init函数和属性初始化的顺序探究/">
+        </link>
+        <updated>2023-03-27T13:57:53.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Java的继承和组合]]></title>
+        <id>https://BravestSnail.github.io/post/Java的继承和组合/</id>
+        <link href="https://BravestSnail.github.io/post/Java的继承和组合/">
+        </link>
+        <updated>2023-02-13T18:18:47.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[LiveData原理]]></title>
+        <id>https://BravestSnail.github.io/post/LiveData原理/</id>
+        <link href="https://BravestSnail.github.io/post/LiveData原理/">
+        </link>
+        <updated>2022-09-21T18:20:40.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[ViewModel的研究]]></title>
+        <id>https://BravestSnail.github.io/post/ViewModel的研究/</id>
+        <link href="https://BravestSnail.github.io/post/ViewModel的研究/">
+        </link>
+        <updated>2022-09-21T18:20:40.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[横向粘性标题的研究]]></title>
+        <id>https://BravestSnail.github.io/post/横向粘性标题的研究/</id>
+        <link href="https://BravestSnail.github.io/post/横向粘性标题的研究/">
+        </link>
+        <updated>2022-08-12T13:57:53.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[自定义可以嵌套滑动的ListView]]></title>
+        <id>https://BravestSnail.github.io/post/自定义可以嵌套滑动的ListView/</id>
+        <link href="https://BravestSnail.github.io/post/自定义可以嵌套滑动的ListView/">
+        </link>
+        <updated>2022-04-20T07:37:06.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[通过自定义HsvEvaluator来学习自定义Evaluator原理]]></title>
+        <id>https://BravestSnail.github.io/post/通过自定义HsvEvaluator来学习自定义Evaluator原理/</id>
+        <link href="https://BravestSnail.github.io/post/通过自定义HsvEvaluator来学习自定义Evaluator原理/">
+        </link>
+        <updated>2022-03-20T17:00:01.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[自定义View遇到的问题]]></title>
+        <id>https://BravestSnail.github.io/post/自定义View遇到的问题/</id>
+        <link href="https://BravestSnail.github.io/post/自定义View遇到的问题/">
+        </link>
+        <updated>2022-03-20T16:50:58.000Z</updated>
+    </entry>
+</feed>

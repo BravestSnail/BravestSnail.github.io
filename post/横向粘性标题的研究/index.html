@@ -1,0 +1,391 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>横向粘性标题的研究 | BreavestSnail</title>
+
+<link rel="shortcut icon" href="https://BravestSnail.github.io/favicon.ico?v=1679925769865">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://BravestSnail.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            BreavestSnail
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1679925769865"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    横向粘性标题的研究
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2022-08-12 ·
+                    </time>
+                    
+                        <a href="https://BravestSnail.github.io/tag/View/" class="post-tags">
+                            # View
+                        </a>
+                    
+                        <a href="https://BravestSnail.github.io/tag/Android/" class="post-tags">
+                            # Android
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <p>最近因为项目需求，需要实现一个类似于粘性标题的功能，具体效果见封面。<br>
+思考了很久，也迭代了三个版本。</p>
+<h2 id="版本一">版本一</h2>
+<p>这个版本使用了两个ViewPager2嵌套的方式，通过一个ViewGroup去协调两个ViewPager2的滑动事件。看代码：</p>
+<pre><code class="language-Kotlin">class NestedViewPager @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : FrameLayout(context, attrs, defStyleAttr) {
+    private val mViewPager2: ViewPager2 = ViewPager2(context, attrs, defStyleAttr).apply {
+        layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+    }
+
+    private val count: Int
+        get() = mViewPager2.adapter?.itemCount ?: 0
+    private var position = 0
+    private var lastX = 0f
+
+    init {
+        addView(mViewPager2)
+        mViewPager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageScrolled(
+                position: Int,
+                positionOffset: Float,
+                positionOffsetPixels: Int
+            ) {
+                this@NestedViewPager.position = position
+            }
+        })
+    }
+
+    var adapter: RecyclerView.Adapter&lt;*&gt;?
+        get() = mViewPager2.adapter
+        set(value) {
+            mViewPager2.adapter = value
+        }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+        val delta = ev.x - lastX
+        when (ev.action) {
+            MotionEvent.ACTION_MOVE -&gt; {
+                Log.d(&quot;test&quot;, &quot;onInterceptTouchEvent: &quot;)
+                val isDisallowIntercept =
+                    count &gt; 1 &amp;&amp; (position == 0 &amp;&amp; delta &lt; 0 || position == count - 1 &amp;&amp; delta &gt; 0 || position &gt; 0 &amp;&amp; position &lt; count - 1)
+                parent.requestDisallowInterceptTouchEvent(isDisallowIntercept)
+            }
+        }
+        lastX = ev.x
+        return super.onInterceptTouchEvent(ev)
+    }
+
+}
+</code></pre>
+<p>这个是内层的ViewPager2，由于ViewPager2是final的，不支持继承，因此只能采用在外面再套一层FrameLayout的方式去截取滑动事件，并且分发事件。<br>
+可以看到在37行，我重写了<code>onInterceptTouchEvent</code>方法，这个方法会在dispatchTouchEvent<br>
+方法中被调用，<a href="obsidian://open?vault=Gridea&amp;file=Gridea%2Fposts%2Fzi-ding-yi-ke-yi-qian-tao-hua-dong-de-listview">详细请看</a>。在这里，我根据ViewPager当前显示的Item的，确定当是首尾两个Item并判断此时的滑动方向，决定是否要调用父View的requestDisallowInterceptTouchEvent，这个方法的作用是，当参数值为true的时候，请求父View不拦截这一次触摸事件序列，使得事件能够正确后续的事件能够正确的传递到子View。</p>
+<blockquote>
+<p>值得注意的是：<code>requestDisallowInterceptTouchEvent</code>，需要将将父View设置为不拦截任何<code>ACTION_DOWN</code>事件，因 为 ACTION_DOWN 事 件 并 不 受<code>FLAG_DISALLOW_INTERCEPT</code>这个标记位的控制，所以一旦父容器拦截ACTION_DOWN事件，那么所有的事件都无法传递到子元素中去，这样内部拦截就无法起作用了</p>
+</blockquote>
+<h3 id="效果">效果</h3>
+<figure data-type="image" tabindex="1"><img src="https://s2.loli.net/2022/08/22/ogixcdBGbYQOsZr.gif" alt="横向粘性标题ViewPager2.gif" loading="lazy"></figure>
+<h2 id="版本二">版本二</h2>
+<p>效果太差，代码没有保存。大致思想是使用两个RecyclerView，然后通过一个父容器去协调两者的滑动事件。</p>
+<h2 id="版本三">版本三</h2>
+<p>这个应该是最终版，思想是每一组数据生成一个View，作为RecyclerView的子项，然后再根据RecyclerView的滑动去控制子View标题的协同滑动。</p>
+<h3 id="难点一">难点一</h3>
+<p>每一组的数据的数量是不同的且最大值无法确定，难道要为不同数量的数据各自编写layout，这是不现实的，最佳的方法是代码动态去生成。</p>
+<pre><code class="language-Kotlin">class AuthorAdapter(val authors: List&lt;Pair&lt;String, List&lt;Celebrity&gt;&gt;&gt;) :
+    RecyclerView.Adapter&lt;AuthorViewHolder&gt;() {
+ 
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AuthorViewHolder {
+        return AuthorViewHolder(
+            ItemAuthorInfoLayout(parent.context,viewType).apply {
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+        )
+    }
+
+    override fun onBindViewHolder(holder: AuthorViewHolder, position: Int) {
+        holder.bind(authors[position])
+    }
+
+    override fun getItemCount(): Int {
+        return authors.size
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return authors[position].second.size
+    }
+}
+</code></pre>
+<p>Adapter有一个<code>getItemViewType</code>，可以将数据的数量作为一个ViewType,再在<code>onCreateViewHolder</code>中拿到这个<code>ViewType</code>，然后在代码中去动态的调整View中子布局的数量。</p>
+<pre><code class="language-Kotlin">class ItemAuthorInfoLayout @JvmOverloads constructor(
+    context: Context,
+    val viewType: Int = 0,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayout(context, attrs, defStyleAttr) {
+    private val defaultWidth = Res.getDimension(R.dimen.item_author_layout_width).toInt()
+    private val mLayoutParamsOne = LayoutParams(defaultWidth * viewType, LayoutParams.WRAP_CONTENT)
+    private val mLayoutParamsTwo = LayoutParams(defaultWidth, LayoutParams.WRAP_CONTENT)
+    private val padding = Res.getDimension(R.dimen.subject_common_padding).toInt[[[[[[()]]]]]]
+
+    private val titlePosition = 0
+
+    val authorItems: ArrayList&lt;ItemAuthorLayout&gt; = ArrayList[[()]]
+
+    val title = TextView(context, attrs, defStyleAttr, R.style.SubjectInfo_Title).apply {
+        layoutParams = mLayoutParamsTwo
+        setPadding(padding, padding, padding, padding)
+    }
+
+    val titleContainer = LinearLayout(context).apply {
+        orientation = HORIZONTAL
+        layoutParams = mLayoutParamsOne
+        addView(title)
+    }
+
+    val authorContainer = LinearLayout(context).apply {
+        orientation = HORIZONTAL
+        layoutParams = mLayoutParamsOne
+        val inflater = LayoutInflater.from(context)
+        (0 until viewType).forEach { _ -&gt;
+            inflater.inflate(R.layout.item_author_layout, this, false).also {
+                authorItems.add(it as ItemAuthorLayout)
+                this.addView(it)
+            }
+        }
+    }
+
+    init {
+        orientation = VERTICAL
+        addView(titleContainer)
+        addView(authorContainer)
+    }
+}
+</code></pre>
+<h3 id="难点二">难点二</h3>
+<p>该怎么去具体实现标题定住的效果呢，按照我现有的逻辑，标题是会随着RecyclerView的滑动而划走的。那我们来想想，是不是只要我们再滑动的时候，让标题往反方向上去滑动相同的距离，是不是就做到不动的效果了，看代码：</p>
+<pre><code class="language-Kotlin">class ItemAuthorInfoLayout @JvmOverloads constructor(
+    context: Context,
+    val viewType: Int = 0,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : LinearLayout(context, attrs, defStyleAttr) {
+
+    fun scrollTitle(dx: Int){
+        val start = 0
+        val end = (viewType - 1) * defaultWidth
+        val newX = dx + title.x
+        if (newX &gt;= start &amp;&amp; newX &lt;= end) {
+            title.x = newX
+            invalidate()
+        } else if (newX &lt; start &amp;&amp; title.x &gt; start) {
+            title.x = start.toFloat()
+            invalidate()
+        } else if (newX &gt; end &amp;&amp; title.x &lt; end) {
+            title.x = end.toFloat()
+            invalidate()
+        }
+    }
+}
+</code></pre>
+<p>上面，我通过改变标题在容器内的相对位置并且调用<code>invalidate</code>重绘界面，来实现滑动的效果，上面大部分的判断是限制滑动的位置，读者可以不必关注。</p>
+<p>最后，我们需要在RecyclerView滑动的时候调用我们的滑动方法。来看</p>
+<pre><code class="language-Kotlin">private val container = itemView as RecyclerView
+container.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+        val position = layoutManager.findFirstVisibleItemPosition()
+        if (position &gt; -1){
+            val view = layoutManager.findViewByPosition(position) as ItemAuthorInfoLayout
+            view.scrollTitle(dx)
+        }
+    }
+})
+</code></pre>
+<p>通过监听RecyclerView的滑动，然后去不断调用<code>ItemAuthorInfoLayout</code>的滑动方法，往相反的方向滑就可以实现这个需求了。</p>
+<h3 id="效果-2">效果</h3>
+<figure data-type="image" tabindex="2"><img src="https://s2.loli.net/2022/08/22/3YJHvE4z1AmSPlo.gif" alt="横向粘性标题.gif" loading="lazy"></figure>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://BravestSnail.github.io/post/自定义可以嵌套滑动的ListView/" class="post-title gt-a-link">
+                    自定义可以嵌套滑动的ListView
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/横向粘性标题的研究/" class="leancloud_visitors" data-flag-title="横向粘性标题的研究">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'WvJrSNroNbhPcYX1eaaoboX3-gzGzoHsz',
+		appKey: '3eQxwFG6XObQuxiB0CSsNHRv',
+		avatar: '',
+		pageSize: 5,
+		recordIp: true,
+		placeholder: 'Just Go Go',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">温故而知新</div>
+    <div class="social-container">
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://BravestSnail.github.io/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

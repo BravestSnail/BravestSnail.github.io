@@ -1,0 +1,423 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>自定义可以嵌套滑动的ListView | BreavestSnail</title>
+
+<link rel="shortcut icon" href="https://BravestSnail.github.io/favicon.ico?v=1679925769865">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://BravestSnail.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            BreavestSnail
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1679925769865"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    自定义可以嵌套滑动的ListView
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2022-04-20 ·
+                    </time>
+                    
+                        <a href="https://BravestSnail.github.io/tag/View/" class="post-tags">
+                            # View
+                        </a>
+                    
+                        <a href="https://BravestSnail.github.io/tag/Android/" class="post-tags">
+                            # Android
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <h2 id="继承viewgroup">继承ViewGroup</h2>
+<p>ListView需要往里面添加子View，因此需要继承ViewGroup</p>
+<pre><code class="language-kotin">class MyListView @JvmOverloads constructor(
+    context:Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+):ViewGroup(context, attrs, defStyleAttr)
+</code></pre>
+<p>kotlin的函数默认值虽然可以做到函数重载的效果，但是要兼容java的函数重载还是需要一个<code>@JvmOverload</code>注解。</p>
+<h2 id="重写onmeasure方法">重写OnMeasure方法</h2>
+<p>这次我们只需要简单调用一下<code>measureChildren</code>想详细了解一下的可以，按住Ctrl+单击方法，可以进入方法内部，查看它的实现。</p>
+<pre><code class="language-kotlin">override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    measureChildren(widthMeasureSpec,heightMeasureSpec)
+}```
+## 重写OnLayout方法
+为了实现竖直和水平方向的滑动，定义一个Orientation类。
+```kotlin
+enum class Orientation{
+    VERTICAL,HORIZONTAL
+}
+</code></pre>
+<h2 id="看看onlayout方法">看看onLayout方法</h2>
+<pre><code class="language-kotlin">override fun onLayout(p0: Boolean, p1: Int, p2: Int, p3: Int, p4: Int) {
+    when(orientation){
+        Orientation.VERTICAL -&gt;{
+            var height = 0
+            for (i in 0 until childCount){
+                val child = getChildAt(i)
+                child.layout(0,height,child.measuredWidth,height + child.measuredHeight)
+                height += child.measuredHeight
+            }
+        }
+        Orientation.HORIZONTAL -&gt;{
+            var width = 0
+            for (i in 0 until childCount){
+                val child = getChildAt(i)
+                child.layout(width,0,width + child.measuredWidth,child.measuredHeight)
+                width += child.measuredWidth
+            }
+        }
+    }
+}
+</code></pre>
+<p>从上面的代码来看，<code>onLayout</code>做的事就是遍历调用子view的<code>layout</code>方法，将子view在不同的方向上放置。</p>
+<h2 id="让listview动起来">让ListView动起来</h2>
+<p>要让ListView动起来，我们要重写<code>onTouchEvent</code>方法，在用户在滑动屏幕的时候ListView跟着动起来。<br>
+在写之前我们要搞清楚几个问题</p>
+<h3 id="点击事件的传递规则">点击事件的传递规则</h3>
+<p>点击事件的分发过程由三个很重要的方法来共同完成：<code>dispatchTouchEvent</code>、<br>
+<code>onInterceptTouchEvent</code>和<code>onTouchEvent</code>，下面我们先介绍一下这几个方法。<br>
+<code>public boolean dispatchTouchEvent(MotionEvent ev)</code><br>
+用来进行事件的分发。如果事件能够传递给当前View，那么此方法一定会被调用，返回结果受当前<br>
+View的<code>onTouchEvent</code>和下级View的<code>dispatchTouchEvent</code>方法的影响，表示是否消耗当前事件。<br>
+<code>public boolean onInterceptTouchEvent(MotionEvent event)</code><br>
+在上述方法内部调用，用来判断是否拦截某个事件，如果当前View拦截了某个事件，那么在同一个事<br>
+件序列当中，此方法不会被再次调用，返回结果表示是否拦截当前事件。<br>
+<code>public boolean onTouchEvent(MotionEvent event)</code><br>
+在<code>dispatchTouchEvent</code>方法中调用，用来处理点击事件，返回结果表示是否消耗当前事件，如果不消耗，则在同一个事件序列中，当前View无法再次接收到事件。<br>
+上述三个方法到底有什么区别呢？它们是什么关系呢？其实它们的关系可以用如下伪代码表示：</p>
+<pre><code class="language-java"> public boolean dispatchTouchEvent(MotionEvent ev) {
+     boolean consume = false;
+     if (onInterceptTouchEvent(ev)) {
+         consume = onTouchEvent(ev);
+     } else {
+         consume = child.dispatchTouchEvent(ev);
+     }
+     return consume;
+ }
+</code></pre>
+<p>上述伪代码已经将三者的关系表现得淋漓尽致。通过上面的伪代码，我们也可以大致了解点击事件的<br>
+传递规则：对于一个根ViewGroup来说，点击事件产生后，首先会传递给它，这时它的<code>dispatchTouchEvent</code>就会被调用，如果这个ViewGroup的<code>onInterceptTouchEvent</code>方法返回<code>true</code>就表示它要拦截当前事件，接着事件 就 会 交 给 这 个 ViewGroup 处 理 ， 即 它 的 <code>onTouchEvent</code> 方 法 就 会 被 调 用 ； 如 果 这 个 ViewGroup 的<code>onInterceptTouchEvent</code>方法返回<code>false</code>就表示它不拦截当前事件，这时当前事件就会继续传递给它的子元素，接着子元素的<code>dispatchTouchEvent</code>方法就会被调用，如此反复直到事件被最终处理。</p>
+<h3 id="view的滑动">View的滑动</h3>
+<p>见《Android开发艺术探索》3.3节</p>
+<h3 id="重写ontouchevent方法">重写onTouchEvent方法</h3>
+<pre><code class="language-kotlin">override fun onTouchEvent(event: MotionEvent): Boolean {
+    val intercepted = when (event.action){
+        MotionEvent.ACTION_DOWN -&gt; {
+            lastX = event.x
+            lastY = event.y
+            true
+        }
+        MotionEvent.ACTION_MOVE -&gt; {
+            val deltaX = lastX - event.x
+            val deltaY = lastY - event.y
+            lastX = event.x
+            lastY = event.y
+            when(orientation){
+                Orientation.VERTICAL -&gt;{
+                    if (isMove(deltaY,Orientation.VERTICAL)){
+                        scrollBy(0,deltaY.toInt())
+                    }
+                }
+                Orientation.HORIZONTAL -&gt;{
+                    if (isMove(deltaX,Orientation.HORIZONTAL)){
+                        scrollBy(deltaX.toInt(),0)
+                    }
+                }
+            }
+            true
+        }
+        MotionEvent.ACTION_UP -&gt; {
+            lastX = 0f
+            lastY = 0f
+            true
+        }
+        else -&gt; {
+            super.onTouchEvent(event)
+        }
+    }
+    return intercepted
+}
+</code></pre>
+<p>从上述代码可以看到，我们使用了<code>lastX/Y</code>去记录<code>ACTION_DOWN</code>发生或者之前<code>ACTION_MOVE</code>发生的坐标，在<code>ACTION_MOVE</code>事件发生后，计算出<code>deltaX /Y</code>也就是两个坐标之间的距离，在根据ListView的Orientation，调用<code>scrollBy</code>方法，在相应的方向做出滑动。<br>
+我们可以看到在滑动之前有一个<code>isMove</code>判断，该方法的作用是判断当前方向是否能够做出滑动动作。</p>
+<pre><code class="language-kotlin">private fun isMove(delta: Float,orientation: Orientation): Boolean
+ = when(orientation){
+    Orientation.VERTICAL -&gt;{
+        val bottomY = (childCount - 1) * height
+        delta &lt; 0 &amp;&amp; ((delta + scrollY &gt; 0).also { if (!it) scrollTo(0,0) })
+                || delta &gt; 0 &amp;&amp; ((scrollY + delta &lt; bottomY).also{ if (!it) scrollTo(0, bottomY) })
+                || delta == 0f
+    }
+    Orientation.HORIZONTAL -&gt;{
+        val endX = (childCount - 1) * width
+        delta &lt; 0 &amp;&amp; ((delta + scrollX &gt; 0).also { if (!it) scrollTo(0,0) })
+                || delta &gt; 0 &amp;&amp; ((scrollX + delta &lt; endX).also{ if (!it) scrollTo(endX,0) })
+                || delta == 0f
+    }
+
+ }
+</code></pre>
+<p>以VERTICAL方向为例，当<code>delta&lt;0</code>时，滑动方向时自上而下，此时如果内容边界距离View边界的距离（scrollY）不够滑动，则我们不能够做出完整的滑动动作，只能够滑动到View的上边界<code>scrollTo(0,0)</code>；对于下边界同理。</p>
+<h2 id="嵌套滑动">嵌套滑动</h2>
+<p>如果在ListView中套一个ListView会如何呢?</p>
+<pre><code class="language-xml">&lt;com.example.listdemo.MyListView
+    android:id=&quot;@+id/list1&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:orientation=&quot;vertical&quot;&gt;
+
+    &lt;com.example.listdemo.MyListView
+        android:id=&quot;@+id/list2&quot;
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot;
+        android:orientation=&quot;horizontal&quot;&gt;
+
+        &lt;TextView
+            android:id=&quot;@+id/text1&quot;
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;match_parent&quot;
+            android:background=&quot;@color/black&quot;/&gt;
+
+        &lt;TextView
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;match_parent&quot;
+            android:background=&quot;@color/purple_500&quot;/&gt;
+
+        &lt;TextView
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;match_parent&quot;
+            android:background=&quot;@color/purple_700&quot;/&gt;
+
+    &lt;/com.example.listdemo.MyListView&gt;
+
+    &lt;TextView
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot;
+        android:background=&quot;@color/teal_700&quot;/&gt;
+    &lt;TextView
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot;
+        android:background=&quot;@color/purple_200&quot;/&gt;
+&lt;/com.example.listdemo.MyListView&gt;
+</code></pre>
+<p>我们来分析一下：ViewGroup默认是不拦截任何事件的，也就是说只有在子View不处理点击事件的时候，事件才会传递到父ViewGroup处理；子View如果消费了该事件也就不会有点击事件交给父ViewGroup处理了。<br>
+综上，我们可以在事件经过ListView的时候，拦截下需要处理的事件，余下的再传递个子View。</p>
+<h3 id="重写onintercepttouchevent方法">重写onInterceptTouchEvent方法</h3>
+<pre><code class="language-kotlin">override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+    val intercepted = when(ev.action){
+        MotionEvent.ACTION_DOWN -&gt;{
+            onTouchEvent(ev)
+            false
+        }
+        MotionEvent.ACTION_MOVE -&gt;{
+            val deltaX = lastInterceptX - ev.x
+            val deltaY = lastInterceptY - ev.y
+            when (orientation){
+                Orientation.VERTICAL -&gt; {
+                    abs(deltaY) &gt; abs(deltaX)
+                }
+                Orientation.HORIZONTAL -&gt; {
+                    abs(deltaY) &lt; abs(deltaX)
+                }
+            }
+        }
+        MotionEvent.ACTION_UP -&gt;{
+            false
+        }
+        else -&gt; {
+            false
+        }
+    }
+    lastInterceptX = ev.x
+    lastInterceptY = ev.y
+    return intercepted
+}
+</code></pre>
+<p>重写<code>onInterceptTouchEvent</code>要注意的是，不能拦截<code>ACTION_DOWN</code> ,不然其之后的一系列事件都会拦截下来，不会传递到子View；拦截<code>ACTION_UP</code> 要慎重考虑，一旦拦截下来，子View的点击事件将不能被触发。<br>
+在<code>ACTION_MOVE</code>分支中，我们通过<code>deltaX/Y</code>在X轴和Y轴滑动的距离来判断是否拦截该事件。<br>
+值得注意的是：因为我们在没有拦截<code>ACTION_DOWN</code>事件，因此，在子View消耗了该事件之后，我们的父布局将收不到<code>ACTION_DOWN</code>引起的<code>onTouchEvent</code>的调用，会在嵌套滑动的时候产生意料之外的Bug，我的做法是在<code>ACTION_DOWN</code>事件主动调用<code>onTouchEvent</code>方法，将<code>ACTION_DOWN</code>事件传递过去。以上做法经供参考，还有其他的做法。<br>
+处理嵌套不只有上述做法，还内部拦截法等方法，详细参见《Android开发艺术探索》3.5节。</p>
+<h2 id="效果">效果</h2>
+<figure data-type="image" tabindex="1"><img src="https://s2.loli.net/2022/07/21/LEWYoyIPnC9wG5k.gif" alt="Screenrecorder-2022-07-20-15-26-23-985_.gif" loading="lazy"></figure>
+<h2 id="参考文章">参考文章</h2>
+<p>《Android开发艺术探索》3-4章<br>
+<a href="https://www.cnblogs.com/qifengshi/p/5808794.html">简单的ViewPager了解Scroller类 - byhieg - 博客园</a></p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://BravestSnail.github.io/post/通过自定义HsvEvaluator来学习自定义Evaluator原理/" class="post-title gt-a-link">
+                    通过自定义HsvEvaluator来学习自定义Evaluator原理
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/自定义可以嵌套滑动的ListView/" class="leancloud_visitors" data-flag-title="自定义可以嵌套滑动的ListView">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'WvJrSNroNbhPcYX1eaaoboX3-gzGzoHsz',
+		appKey: '3eQxwFG6XObQuxiB0CSsNHRv',
+		avatar: '',
+		pageSize: 5,
+		recordIp: true,
+		placeholder: 'Just Go Go',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">温故而知新</div>
+    <div class="social-container">
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://BravestSnail.github.io/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

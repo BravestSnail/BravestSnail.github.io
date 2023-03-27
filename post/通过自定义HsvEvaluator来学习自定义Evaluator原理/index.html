@@ -1,0 +1,286 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>通过自定义HsvEvaluator来学习自定义Evaluator原理 | BreavestSnail</title>
+
+<link rel="shortcut icon" href="https://BravestSnail.github.io/favicon.ico?v=1679925769865">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://BravestSnail.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            BreavestSnail
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1679925769865"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    通过自定义HsvEvaluator来学习自定义Evaluator原理
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2022-03-21 ·
+                    </time>
+                    
+                        <a href="https://BravestSnail.github.io/tag/Android/" class="post-tags">
+                            # Android
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <h2 id="前言">前言</h2>
+<p>我们知道，Android系统为我们提供了一个计算颜色的Evaluator---<code>ArgbEvaluator</code>，为什么还要去实现一个<code>HsvEvaluator</code>。这当然是有其道理的，HSV的变换更符合人眼的直觉，可以看看下面HSV的详细解析。<br>
+先看看HSV颜色格式<br>
+HSV颜色空间中不同颜色对应的灰度范围<br>
+在机器视觉领域，我们除了对物体的外形，纹理特征进行检测识别，也可以利用颜色来识别不同物体。<br>
+比如水果的成熟程度。HSV指的是Hue色调分量，Saturation饱和度，Intensity明亮度。<br>
+以下摘自百度百科：<br>
+色调H<br>
+用角度度量，取值范围为0°～360°，从红色开始按逆时针方向计算，红色为0°，绿色为120°,蓝色为240°。它们的补色是：黄色为60°，青色为180°,品红为300°；<br>
+饱和度S<br>
+饱和度S表示颜色接近光谱色的程度。一种颜色，可以看成是某种光谱色与白色混合的结果。其中光谱色所占的比例愈大，颜色接近光谱色的程度就愈高，颜色的饱和度也就愈高。饱和度高，颜色则深而艳。光谱色的白光成分为0，饱和度达到最高。通常取值范围为0%～100%，值越大，颜色越饱和。<br>
+亮度V（I：明度）<br>
+明度表示颜色明亮的程度，对于光源色，明度值与发光体的光亮度有关；对于物体色，此值和物体的透射比或反射比有关。通常取值范围为0%（黑）到100%（白）。<br>
+在HSV颜色空间中颜色分量Hue对应不同颜色的灰度范围如下：</p>
+<ul>
+<li>0&lt;=h&lt;20， 红色</li>
+<li>30&lt;=h&lt;45， 黄色</li>
+<li>45&lt;=h&lt;90， 绿色</li>
+<li>90&lt;=h&lt;125， 青色</li>
+<li>125&lt;=h&lt;150， 蓝色</li>
+<li>150&lt;=h&lt;175， 紫色</li>
+<li>175&lt;=h&lt;200， 粉红色</li>
+<li>200&lt;=h&lt;220， 砖红色</li>
+<li>220&lt;=h&lt;255， 品红色<br>
+<img src="https://s2.loli.net/2022/05/11/h9pXKqM1Zjf4d3A.png" alt="image.png" loading="lazy"></li>
+</ul>
+<h2 id="自定义evaluator">自定义Evaluator</h2>
+<p>实现<code>Evaluator</code>需要继承<code>TypeEvaluator</code>并重写<code>evaluate()</code>。<br>
+在下面的代码中，<code>HsvEvaluator</code>继承<code>TypeEvaluator</code>并重写<code>evaluate()</code>。<code>evaluate()</code>中的代码虽然多，但是并不复杂，核心是先将ARGB格式的颜色转换为HSV格式的颜色，并根据公式<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>o</mi><mi>u</mi><mi>t</mi><mo>=</mo><mi>b</mi><mi>e</mi><mi>g</mi><mi>i</mi><mi>n</mi><mo>+</mo><mo>(</mo><mi>e</mi><mi>n</mi><mi>d</mi><mo>−</mo><mi>b</mi><mi>e</mi><mi>g</mi><mi>i</mi><mi>n</mi><mo>)</mo><mo>∗</mo><mi>f</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi><mi>o</mi><mi>u</mi><mi>t</mi><mo>=</mo><mi>b</mi><mi>e</mi><mi>g</mi><mi>i</mi><mi>n</mi><mo>+</mo><mo>(</mo><mi>e</mi><mi>n</mi><mi>d</mi><mi mathvariant="normal">−</mi><mi>b</mi><mi>e</mi><mi>g</mi><mi>i</mi><mi>n</mi><mo>)</mo><mi mathvariant="normal">∗</mi><mi>f</mi><mi>r</mi><mi>a</mi><mi>c</mi><mi>t</mi><mi>i</mi><mi>o</mi><mi>n</mi></mrow><annotation encoding="application/x-tex">out = begin + (end - begin) * fractionout=begin+(end−begin)∗fraction</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.61508em;vertical-align:0em;"></span><span class="mord mathdefault">o</span><span class="mord mathdefault">u</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">b</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">e</span><span class="mord mathdefault">n</span><span class="mord mathdefault">d</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">b</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord mathdefault">c</span><span class="mord mathdefault">t</span><span class="mord mathdefault">i</span><span class="mord mathdefault">o</span><span class="mord mathdefault">n</span><span class="mord mathdefault">o</span><span class="mord mathdefault">u</span><span class="mord mathdefault">t</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">b</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">e</span><span class="mord mathdefault">n</span><span class="mord mathdefault">d</span><span class="mord">−</span><span class="mord mathdefault">b</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mclose">)</span><span class="mord">∗</span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord mathdefault">c</span><span class="mord mathdefault">t</span><span class="mord mathdefault">i</span><span class="mord mathdefault">o</span><span class="mord mathdefault">n</span></span></span></span>来计算出当前动画对应的值，最后将HSV格式的颜色转换会ARGB格式，返回。</p>
+<pre><code class="language-kotlin">class HsvEvaluator() : TypeEvaluator&lt;Int&gt; {
+    val startHsv = FloatArray(3)
+    val endHsv = FloatArray(3)
+    val outHsv = FloatArray(3)
+    override fun evaluate(fraction: Float, startValue: Int?, endValue: Int?): Int {
+        //转换ARGB为HSV
+        //计算当前动画所对应的透明度
+        val outAlpha = if (startValue != null &amp;&amp; endValue != null){
+            Color.colorToHSV(startValue, startHsv)
+            Color.colorToHSV(endValue, endHsv)
+            startValue shr 24 + ((endValue shr 24 - startValue shr 24) * fraction).toInt()
+        }else{
+            0
+        }
+
+        //计算动画完成度
+        if (endHsv[0] - startHsv[0] &gt; 180f) {
+            endHsv[0] -= 360f
+        } else if (endHsv[0] - startHsv[0] &lt; -180f) {
+            endHsv[0] += 360f
+        }
+        outHsv[0] = startHsv[0] + (endHsv[0] - startHsv[0]) * fraction
+        outHsv[0] = (outHsv[0] + 360f) % 360
+        outHsv[1] = startHsv[1] + (endHsv[1] - startHsv[1]) * fraction
+        outHsv[2] = startHsv[2] + (endHsv[2] - startHsv[2]) * fraction
+
+        //将HSV转换为ARGB
+        return Color.HSVToColor(outAlpha,outHsv)
+    }
+}
+</code></pre>
+<h2 id="看看效果">看看效果</h2>
+<p>代码：</p>
+<pre><code class="language-kotlin">val animatorSet = AnimatorSet().apply {
+    playTogether(
+        ObjectAnimator.ofInt(
+            findViewById(R.id.textView),&quot;backgroundColor&quot;,
+            Color.RED,Color.GREEN
+        ).apply {
+            setEvaluator(ArgbEvaluator())
+        },
+        ObjectAnimator.ofInt(
+            findViewById(R.id.textView1),&quot;backgroundColor&quot;,
+            Color.RED,Color.GREEN
+        ).apply {
+            setEvaluator(HsvEvaluator())
+        }
+    )
+}
+animatorSet.setDuration(5000).start()
+</code></pre>
+<p><img src="https://s2.loli.net/2022/05/10/D7Wq6KCUwseRxbp.gif" alt="HSV.gif" loading="lazy"><br>
+无论是<code>HsvEvalutator</code>，还是<code>ArgbEvaluator</code>都能完成颜色的平滑过度，但是仔细观察，就会觉得<code>HsvEvalutator</code>处理的颜色看得更顺眼一些，而<code>ArgbEvaluato</code>r完成的颜色过度，会在一些时候显得更暗。这是自然的，HSV是为人类设计的颜色格式，而ARGB是为机器设计的格式。<br>
+总结<br>
+因此，在以后用到颜色的过度动画，我更推荐使用<code>HsvEvalutator</code>去计算颜色动画完成度。</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://BravestSnail.github.io/post/自定义View遇到的问题/" class="post-title gt-a-link">
+                    自定义View遇到的问题
+                </a>
+            </div>
+        
+
+        
+            <span id="/post/通过自定义HsvEvaluator来学习自定义Evaluator原理/" class="leancloud_visitors" data-flag-title="通过自定义HsvEvaluator来学习自定义Evaluator原理">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'WvJrSNroNbhPcYX1eaaoboX3-gzGzoHsz',
+		appKey: '3eQxwFG6XObQuxiB0CSsNHRv',
+		avatar: '',
+		pageSize: 5,
+		recordIp: true,
+		placeholder: 'Just Go Go',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">温故而知新</div>
+    <div class="social-container">
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://BravestSnail.github.io/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

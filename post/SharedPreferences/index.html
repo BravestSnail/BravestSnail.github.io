@@ -1,0 +1,542 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>SharedPreferences | BreavestSnail</title>
+
+<link rel="shortcut icon" href="https://BravestSnail.github.io/favicon.ico?v=1679925769865">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://BravestSnail.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.15.10/languages/dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            BreavestSnail
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1679925769865"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    SharedPreferences
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2022-08-24 ·
+                    </time>
+                    
+                        <a href="https://BravestSnail.github.io/tag/SharedPreferences/" class="post-tags">
+                            # SharedPreferences
+                        </a>
+                    
+                        <a href="https://BravestSnail.github.io/tag/Android/" class="post-tags">
+                            # Android
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <p>SharedPreferences是以键值对的方式保存数据的，数据存放在xml文件中。</p>
+<h2 id="获取sharedpreferences">获取SharedPreferences</h2>
+<ol>
+<li>Context类的getSharedPreferences()方法。参数一：指定文件名称；参数二：指定操作模式，Android4.2之后只有MODE_PRIVATE一种模式。</li>
+<li>Activity类的getPreferences()方法。文件名称默认是当前Activity的类名，接受一操作模式参数。</li>
+<li>PreferenceManager类中的getDefaultSharedPerferences()方法。这是一个静态方法，接受一个Context参数，并自动使用当前应用程序的包名作为前缀命名文件名。</li>
+</ol>
+<h2 id="sharedpreferences的使用">SharedPreferences的使用</h2>
+<p>SharedPreferences对象本身不支持存储和修改，只能获取数据，存储修改是通过SharedPreferences.edit()获取内部接口Editor对象实现。</p>
+<pre><code class="language-java"> 1）写入数据：
+     //步骤1：创建一个SharedPreferences对象
+     SharedPreferences sharedPreferences= getSharedPreferences(&quot;data&quot;,Context.MODE_PRIVATE);
+     //步骤2： 实例化SharedPreferences.Editor对象
+     SharedPreferences.Editor editor = sharedPreferences.edit();
+     //步骤3：将获取过来的值放入文件
+     editor.putString(&quot;name&quot;, “Tom”);
+     editor.putInt(&quot;age&quot;, 28);
+     editor.putBoolean(&quot;marrid&quot;,false);
+     //步骤4：提交               
+     editor.commit();
+
+
+ 2）读取数据：
+     SharedPreferences sharedPreferences= getSharedPreferences(&quot;data&quot;, Context .MODE_PRIVATE);
+     String userId=sharedPreferences.getString(&quot;name&quot;,&quot;&quot;);
+  
+3）删除指定数据
+     editor.remove(&quot;name&quot;);
+     editor.commit();
+
+
+4）清空数据
+     editor.clear();
+     editor.commit();
+</code></pre>
+<h2 id="关键点">关键点</h2>
+<ol>
+<li>没有xml时会创建文件</li>
+</ol>
+<pre><code class="language-java">public SharedPreferences getSharedPreferences(String name, int mode) { 
+	File file; 
+	synchronized (ContextImpl.class) { 
+		if (mSharedPrefsPaths == null) { 
+			mSharedPrefsPaths = new ArrayMap&lt;&gt;(); 
+		} 
+		//先从mSharedPrefsPaths查询是否存在相应文件 
+		file = mSharedPrefsPaths.get(name); 
+		if (file == null) { 
+		//如果文件不存在, 则创建新的文件，文件的路径是/data/data/package name/shared_prefs/ 
+		file = getSharedPreferencesPath(name); 
+		mSharedPrefsPaths.put(name, file); 
+		} 
+	} 
+	return getSharedPreferences(file, mode); }
+</code></pre>
+<ol start="2">
+<li>SharedPreferences加载文件使用异步加载的方式。</li>
+</ol>
+<pre><code class="language-java">private void startLoadFromDisk() { 
+	synchronized (this) { mLoaded = false; } 
+	new Thread(&quot;SharedPreferencesImpl-load&quot;) { 
+		public void run() { loadFromDisk(); } 
+	}.start(); 
+}
+</code></pre>
+<ol start="3">
+<li>读文件的时候会等待一个锁，调用线程会被阻塞。因此，如果文件太大可能会导致ANR。</li>
+</ol>
+<pre><code class="language-java">public String getString(String key, @Nullable String defValue) {
+    synchronized (this) {
+        //检查是否加载完成
+        awaitLoadedLocked();
+        String v = (String)mMap.get(key);
+        return v != null ? v : defValue;
+    }
+}
+
+private void awaitLoadedLocked() {
+    if (!mLoaded) {
+        // Raise an explicit StrictMode onReadFromDisk for this
+        // thread, since the real read will be in a different
+        // thread and otherwise ignored by StrictMode.
+        BlockGuard.getThreadPolicy().onReadFromDisk();
+    }
+    while (!mLoaded) {
+        try {
+            mLock.wait();
+        } catch (InterruptedException unused) {
+        }
+    }
+    if (mThrowable != null) {
+        throw new IllegalStateException(mThrowable);
+    }
+}
+</code></pre>
+<ol start="4">
+<li>写文件实际上会创建一个新的Map用于记录要修改的内容。</li>
+</ol>
+<pre><code class="language-java">public Editor edit() {
+    synchronized (this) {
+        awaitLoadedLocked(); 
+    }
+    return new EditorImpl(); 
+}
+
+public final class EditorImpl implements Editor {
+    private final Map&lt;String, Object&gt; mModified = Maps.newHashMap();
+    private boolean mClear = false;
+
+    //插入数据
+    public Editor putString(String key, @Nullable String value) {
+        synchronized (this) {
+            //插入数据, 先暂存到mModified对象
+            mModified.put(key, value);
+            return this;
+        }
+    }
+    //移除数据
+    public Editor remove(String key) {
+        synchronized (this) {
+            mModified.put(key, this);
+            return this;
+        }
+    }
+
+    //清空全部数据
+    public Editor clear() {
+        synchronized (this) {
+            mClear = true;
+            return this;
+        }
+    }
+}
+</code></pre>
+<ol start="5">
+<li>commit和apply的差异<br>
+commit行是isFromSyncCommit，直接将runnable run了起来。是同步的过程。</li>
+</ol>
+<pre><code class="language-java">public boolean commit() {
+    //将数据更新到内存
+    MemoryCommitResult mcr = commitToMemory();
+    //将内存数据同步到文件
+    SharedPreferencesImpl.this.enqueueDiskWrite(mcr, null);
+    try {
+        //进入等待状态, 直到写入文件的操作完成
+        mcr.writtenToDiskLatch.await();
+    } catch (InterruptedException e) {
+        return false;
+    }
+    //通知监听则, 并在主线程回调onSharedPreferenceChanged()方法
+    notifyListeners(mcr);
+    // 返回文件操作的结果数据
+    return mcr.writeToDiskResult;
+}
+
+private MemoryCommitResult commitToMemory() {
+    MemoryCommitResult mcr = new MemoryCommitResult();
+    synchronized (SharedPreferencesImpl.this) {
+        if (mDiskWritesInFlight &gt; 0) {
+            mMap = new HashMap&lt;String, Object&gt;(mMap);
+        }
+        //这里就是要写到磁盘的map
+        mcr.mapToWriteToDisk = mMap;
+        mDiskWritesInFlight++;
+
+        //是否有监听key改变的监听者
+        boolean hasListeners = mListeners.size() &gt; 0;
+        if (hasListeners) {
+            mcr.keysModified = new ArrayList&lt;String&gt;();
+            mcr.listeners = new HashSet&lt;OnSharedPreferenceChangeListener&gt;(mListeners.keySet());
+        }
+
+        synchronized (this) {
+            //当mClear为true, 则直接清空mMap
+            if (mClear) {
+                if (!mMap.isEmpty()) {
+                    mcr.changesMade = true;
+                    mMap.clear();
+                }
+                mClear = false;
+            }
+
+            for (Map.Entry&lt;String, Object&gt; e : mModified.entrySet()) {
+                String k = e.getKey();
+                Object v = e.getValue();
+                //注意此处的this是个特殊值, 用于移除相应的key操作.
+                if (v == this || v == null) {
+                    if (!mMap.containsKey(k)) {
+                        continue;
+                    }
+                    mMap.remove(k);
+                } else {
+                    if (mMap.containsKey(k)) {
+                        Object existingValue = mMap.get(k);
+                        if (existingValue != null &amp;&amp; existingValue.equals(v)) {
+                            continue;
+                        }
+                    }
+                    mMap.put(k, v);
+                }
+
+                mcr.changesMade = true; // changesMade代表数据是否有改变
+                if (hasListeners) {
+                    mcr.keysModified.add(k); //记录发生改变的key
+                }
+            }
+            mModified.clear(); //清空EditorImpl中的mModified数据
+        }
+    }
+    return mcr;
+}
+
+private void enqueueDiskWrite(final MemoryCommitResult mcr,
+                              final Runnable postWriteRunnable) {
+    final Runnable writeToDiskRunnable = new Runnable() {
+            public void run() {
+                synchronized (mWritingToDiskLock) {
+                    //执行文件写入操作
+                    writeToFile(mcr);
+                }
+                synchronized (SharedPreferencesImpl.this) {
+                    mDiskWritesInFlight--;
+                }
+                //此时postWriteRunnable为null不执行该方法
+                if (postWriteRunnable != null) {
+                    postWriteRunnable.run();
+                }
+            }
+        };
+
+    final boolean isFromSyncCommit = (postWriteRunnable == null);
+
+    if (isFromSyncCommit) { //commit方法会进入该分支
+        boolean wasEmpty = false;
+        synchronized (SharedPreferencesImpl.this) {
+            //commitToMemory过程会加1,则wasEmpty=true
+            wasEmpty = mDiskWritesInFlight == 1;
+        }
+        if (wasEmpty) {
+            //跳转到上面
+            writeToDiskRunnable.run();
+            return;
+        }
+    }
+    //不执行该方法
+    QueuedWork.singleThreadExecutor().execute(writeToDiskRunnable);
+}
+</code></pre>
+<p>apply是异步的过程，实际使用HandlerThread去执行的。</p>
+<pre><code class="language-java">public void apply() {
+    final long startTime = System.currentTimeMillis();
+
+    final MemoryCommitResult mcr = commitToMemory();
+    final Runnable awaitCommit = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mcr.writtenToDiskLatch.await();
+                } catch (InterruptedException ignored) {
+                }
+            }
+        };
+
+    QueuedWork.addFinisher(awaitCommit);
+
+    Runnable postWriteRunnable = new Runnable() {
+            @Override
+            public void run() {
+                awaitCommit.run();
+                QueuedWork.removeFinisher(awaitCommit);
+            }
+        };
+
+    SharedPreferencesImpl.this.enqueueDiskWrite(mcr, postWriteRunnable);
+
+    // Okay to notify the listeners before it's hit disk
+    // because the listeners should always get the same
+    // SharedPreferences instance back, which has the
+    // changes reflected in memory.
+    notifyListeners(mcr);
+}
+
+</code></pre>
+<pre><code class="language-java">QueuedWork.singleThreadExecutor().execute(writeToDiskRunnable);
+</code></pre>
+<pre><code class="language-java">public static void queue(Runnable work, boolean shouldDelay) {
+    Handler handler = getHandler();
+
+    synchronized (sLock) {
+        sWork.add(work);
+
+        if (shouldDelay &amp;&amp; sCanDelay) {
+            handler.sendEmptyMessageDelayed(QueuedWorkHandler.MSG_RUN, DELAY);
+        } else {
+            handler.sendEmptyMessage(QueuedWorkHandler.MSG_RUN);
+        }
+    }
+}
+
+private static Handler getHandler() {
+    synchronized (sLock) {
+        if (sHandler == null) {
+            HandlerThread handlerThread = new HandlerThread(&quot;queued-work-looper&quot;,
+                    Process.THREAD_PRIORITY_FOREGROUND);
+            handlerThread.start();
+
+            sHandler = new QueuedWorkHandler(handlerThread.getLooper());
+        }
+        return sHandler;
+    }
+}
+</code></pre>
+<ul>
+<li>apply() 没有返回值而 commit() 返回 boolean 表明修改是否提交成功</li>
+<li>commit() 是把内容同步提交到硬盘的，而 apply() 先立即把修改提交到内存，然后开启一个异步的线程提交到硬盘，并且如果提交失败，你不会收到任何通知。</li>
+<li>get 操作都是线程安全的， 并且 get 仅仅是从内存中 (mMap) 获取数据</li>
+</ul>
+<ol start="6">
+<li>SharedPreferences不支持多进程，支持多线程。</li>
+<li>SharedPreference的文件备份机制<br>
+SharedPreference的写入操作正式执行之前，首先会对文件进行备份，写入成功删除备份文件。若异常终止，则将备份文件重命名为源文件。</li>
+</ol>
+<pre><code class="language-java">// 尝试写入文件
+private void writeToFile(...) {
+  if (!backupFileExists) {
+      !mFile.renameTo(mBackupFile);
+  }
+}
+</code></pre>
+<pre><code class="language-java">// 写入成功，立即删除存在的备份文件
+// Writing was successful, delete the backup file if there is one.
+mBackupFile.delete();
+</code></pre>
+<pre><code class="language-java">// 从磁盘初始化加载时执行
+private void loadFromDisk() {
+    synchronized (mLock) {
+        if (mBackupFile.exists()) {
+            mFile.delete();
+            mBackupFile.renameTo(mFile);
+        }
+    }
+  }
+</code></pre>
+
+                </div>
+            </article>
+        </div>
+
+        
+
+        
+            <span id="/post/SharedPreferences/" class="leancloud_visitors" data-flag-title="SharedPreferences">
+                <em class="post-meta-item-text">阅读量 </em>
+                <i class="leancloud-visitors-count">0</i>
+            </span>
+        
+
+        
+
+        
+            <script src='https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+
+<style>
+	div#vcomments{
+		width:100%;
+		max-width: 1000px;
+		padding: 2.5%
+	}
+</style>
+
+
+	<div id="vcomments"></div>
+
+<script>
+	new Valine({
+		el: '#vcomments',
+		appId: 'WvJrSNroNbhPcYX1eaaoboX3-gzGzoHsz',
+		appKey: '3eQxwFG6XObQuxiB0CSsNHRv',
+		avatar: '',
+		pageSize: 5,
+		recordIp: true,
+		placeholder: 'Just Go Go',
+		visitor: true,
+	});
+</script>
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">温故而知新</div>
+    <div class="social-container">
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        
+    </div>
+    <div>
+        Theme by <a href="https://imhanjie.com/" target="_blank">imhanjie</a>, Powered by <a
+                href="https://github.com/getgridea/gridea" target="_blank">Gridea | <a href="https://BravestSnail.github.io/atom.xml" target="_blank">RSS</a></a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>
