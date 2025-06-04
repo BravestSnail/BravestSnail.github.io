@@ -1,0 +1,283 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="BravestSnail&#39;s Blog">
+<meta property="og:url" content="https://bravestsnail.github.io/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'BravestSnail\'s Blog',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a></span><div id="menus"></div></nav><div id="site-info"><h1 id="site-title">BravestSnail's Blog</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">Android 的 Context 到底是什么？在 Android 开发中，Context 是一个非常核心的概念，但初学者常常对它感到困惑。本文将详细解释什么是 Context、它的作用、常见的使用场景以及注意事项。 1. Context 是什么？简单来说，Context 是一个接口（实际上是一个抽象类），它提供了访问应用环境信息的接口。Context 代表了当前应用或组件的运行环境，允许你访问资源、启动组件、获取系统服务等。 2. Context 的作用Context 主要有以下几个作用：  访问资源：如字符串、图片、布局等。 启动组件：如 Activity、Service、BroadcastReceiver。 获取系统服务：如 NotificationManager、LayoutInflater、ClipboardManager 等。 访问应用级别的信息：如包名、文件目录、SharedPreferences 等。  3. Context 的常见实现类Android 中常见的 Context 实现类有：  Application：全局的...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">基本匹配如有一个字符串abc123dfsfsd, 正则表达式abc123。匹配结果：abc123 任意匹配., 匹配任意的字符如有字符串abc123， 正则表达式.匹配结果：a,b,c,1,2,3 特殊匹配\w, 匹配字母、数字和下划线。\W, 匹配除字母、数字和下划线之外的字符。\d, 仅匹配数字。\D, 匹配除数字之外的字符。\s, 匹配空白符。\S, 匹配空白符之外的字符。 字符集[ ],中括号内的字符组成一个字符集，匹配集合内的任意字符。如有字符串beer deer feer, 正则表达式[bdf]eer.匹配结果：beer,deer,feer 否定字符集^在字符集的首部, 代表不匹配字符集中任意字符。如有字符串beer deer feer, 正则表达式[^bd]eer.匹配结果：feer 字符范围a-z, 代表匹配字符a到z左闭右闭的字符范围，数字同理。 字符次数+，代表前一个字符出现一次或者多次。如有字符串br ber beer, 正则表达式be+r。匹配结果：ber,beer*, 代表前一个字符出现0次或者多次。如有字符串br ber beer,...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">什么是注解引用《Java编程思想》第20章的注解定义：  注解（也被称为元数据）为我们在代码中添加信息提供了一种形式化的方法，使我们可以在稍后某个时刻非常方便地使用这些数据。  元注解Java还另外提供了四种注解，专门负责新注解的创建，这些注解也被称为元注解（meta-annotation）。    注解 含义    @Target 表示该注解可以用于什么地方。可能的 ElementType 包括：CONSTRUCTOR：构造器的声明，FIELD：域声明（包括enum实例），LOCAL_VARIABLE：局部变量声明 ，METHOD：方法声明 ，PACKAGE：包声明...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">定义 进程是资源单位。进程是计算机中正在运行的程序的实例。每个进程都有其自己的地址空间、内存、文件句柄以及系统资源，可以单独运行、调度和管理。 线程是执行单位。线程是进程中的一个执行单元，可以看做是轻量级的进程。与进程不同的是，线程共享同一个进程的内存空间和系统资源，可以在同一时间内并发地运行多个线程。线程的引入提高了计算机的并发能力，使得程序能够更有效地利用CPU资源。 协程与计算机本身无关，是一种用户态内的上下文切换技术。在用户态实现切换和保存状态，更好的处理io状态。  </div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">kotlin过渡优化123456binding.noSignalPowerControl.visibility = if (context.resources.getBoolean(R.bool.support_no_signal_power_control)) &#123;      View.VISIBLE  &#125; else &#123;      View.GONE      return  &#125; 这段代码，我本意是对于隐藏的View直接return，不进行下一步操作但是实际反编译的代码，在条件不成立的情况下没有进行noSignalPowerControl.visibility=GONE操作，而是直接忽略了。下面是反编译后的代码： 1234567SpinnerLayout var10000 = ((DisplayViewBinding)this.getBinding()).noSignalPowerControl;  Intrinsics.checkNotNullExpressionValue(var10000,...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/windows%E7%9B%B8%E5%85%B3/wsl%E4%BB%A3%E7%90%86/" title="wsl代理">wsl代理</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content"> 软件：Clash  代理软件设置 查看代理端口，Clash默认端口为7890 打开LAN口开关  wsl设置原理原理是使用本机作为代理服务器，为wsl提供代理服务，因此需要本机ip地址和代理服务端口，并将wsl的代理设置为该代理服务器。 脚本1234567891011121314151617181920212223242526272829303132333435363738394041424344454647#!/bin/shhostip=$(cat /etc/resolv.conf | grep nameserver | awk &#x27;&#123; print $2 &#125;&#x27;)wslip=$(hostname -I | awk &#x27;&#123;print $1&#125;&#x27;)port=7890PROXY_HTTP=&quot;http://$&#123;hostip&#125;:$&#123;port&#125;&quot;set_proxy()&#123;    export...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/linux%E5%91%BD%E4%BB%A4/%E5%AE%9E%E7%94%A8%E5%91%BD%E4%BB%A4/" title="实用命令">实用命令</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">grep您可以使用 grep 命令在目录中查找包含特定内容的文件。以下是如何使用 grep 来查找包含 name=&quot;common_ir_select_broad_color&quot; 的文件的命令： 1grep -rl &#x27;name=&quot;common_ir_select_broad_color&quot;&#x27; /path/to/your/directory  这个命令的含义是：  -r 或 -R 是递归查找。 -l 是显示文件名而不是具体匹配的行。 &#39;name=&quot;common_ir_select_broad_color&quot;&#39; 是您要查找的字符串。 /path/to/your/directory 是您要搜索的目录。  请将 /path/to/your/directory 替换为您要搜索的实际目录。 cut您可以使用 cut 命令来提取目录名称。以下是如何使用 cut 来提取第一个目录名称的命令： 1echo...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/mermaid/ElectricShelf/" title="ElectricShelf">ElectricShelf</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" title="设计模式">设计模式</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">策略模式对于类行为的处理，过去我们是将其抽象成一个接口，有相同行为的类实现同样的接口。这样做产生了一个问题，假设有一天你需要对行为作出修改，你需要对所有实现行为接口的类作出改变。对此，我们应该将行为从类中剥离出来，抽象出单独的Behavior类去实现接口，在类中去依赖Behavior类即可。这样即使我们需要新的行为实现，只需要替换Behavior类即可，不需要影响类本身的代码。 装饰模式开闭原则类应该对扩展开放，对修改关闭。 </div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E6%80%9D%E6%83%B3/" title="设计模式的思想">设计模式的思想</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">封装变化的代码找出应用中可能需要变化之处，把它们独立出来，不要和那些不需要变化的代码混在一起。针对接口编程，而不是针对实现编程。 多用组合，少用继承使用组合建立系统具有很大的弹性，不仅可以将算法族封装成类，更可以在运行时动态的改变行为，只要组合的行为对象，符合正确的接口标准 </div></div></div></div><nav id="pagination"><div class="pagination"><span class="page-number current">1</span><a class="page-number" href="/page/2/#content-inner">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/#content-inner">8</a><a class="extend next" rel="next" href="/page/2/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">78</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/note/"><span class="card-category-list-name">note</span><span class="card-category-list-count">7</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/SharedPreferences/" style="font-size: 1.1em; color: #999">SharedPreferences</a> <a href="/tags/%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86/" style="font-size: 1.1em; color: #999">事件处理</a> <a href="/tags/Kotlin/" style="font-size: 1.2em; color: #999da3">Kotlin</a> <a href="/tags/%E5%8A%A8%E7%94%BB/" style="font-size: 1.1em; color: #999">动画</a> <a href="/tags/Handler/" style="font-size: 1.1em; color: #999">Handler</a> <a href="/tags/%E7%BB%98%E5%88%B6%E6%B5%81%E7%A8%8B/" style="font-size: 1.1em; color: #999">绘制流程</a> <a href="/tags/Gridea/" style="font-size: 1.1em; color: #999">Gridea</a> <a href="/tags/View/" style="font-size: 1.3em; color: #99a1ac">View</a> <a href="/tags/Accompanist/" style="font-size: 1.1em; color: #999">Accompanist</a> <a href="/tags/%E6%89%8B%E5%8A%BF/" style="font-size: 1.1em; color: #999">手势</a> <a href="/tags/Android/" style="font-size: 1.5em; color: #99a9bf">Android</a> <a href="/tags/Java%E5%AD%A6%E4%B9%A0/" style="font-size: 1.1em; color: #999">Java学习</a> <a href="/tags/%E9%97%AE%E9%A2%98/" style="font-size: 1.1em; color: #999">问题</a> <a href="/tags/LiveData/" style="font-size: 1.2em; color: #999da3">LiveData</a> <a href="/tags/Activity/" style="font-size: 1.1em; color: #999">Activity</a> <a href="/tags/Paging3/" style="font-size: 1.1em; color: #999">Paging3</a> <a href="/tags/Compose/" style="font-size: 1.4em; color: #99a5b6">Compose</a> <a href="/tags/Jetpack/" style="font-size: 1.2em; color: #999da3">Jetpack</a> <a href="/tags/Java/" style="font-size: 1.1em; color: #999">Java</a> <a href="/tags/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%B8%83%E5%B1%80/" style="font-size: 1.1em; color: #999">自定义布局</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      <a class="card-more-btn" href="/archives/"
+            title="查看更多">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/06/">
+            <span class="card-archive-list-date">
+              六月 2025
+            </span>
+            <span class="card-archive-list-count">56</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/05/">
+            <span class="card-archive-list-date">
+              五月 2025
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2024/05/">
+            <span class="card-archive-list-date">
+              五月 2024
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/03/">
+            <span class="card-archive-list-date">
+              三月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/02/">
+            <span class="card-archive-list-date">
+              二月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/09/">
+            <span class="card-archive-list-date">
+              九月 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/08/">
+            <span class="card-archive-list-date">
+              八月 2022
+            </span>
+            <span class="card-archive-list-count">5</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/04/">
+            <span class="card-archive-list-date">
+              四月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">78</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-06-04T12:46:53.395Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

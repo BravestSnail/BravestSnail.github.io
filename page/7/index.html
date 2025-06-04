@@ -1,0 +1,283 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="BravestSnail&#39;s Blog">
+<meta property="og:url" content="https://bravestsnail.github.io/page/7/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/page/7/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'BravestSnail\'s Blog',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a></span><div id="menus"></div></nav><div id="site-info"><h1 id="site-title">BravestSnail's Blog</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/05/29/note/Android/compose/Compose%E7%9A%84%E5%8A%A8%E7%94%BB/" title="Compose的动画">Compose的动画</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-05-29T16:00:00.000Z" title="发表于 2025-05-30 00:00:00">2025-05-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a></span></div><div class="content"> 乍一看Jetpack Compose中的动画Api，尼玛是真的多呀，我C了，简直令人眼花缭乱、云里雾里、天马行空、小兔乱撞、手脚慌乱、头冒虚汗、四肢抓狂、不知所措呀 。。。😭 但是我们可以对其进行分一下类，如果按照使用的方便程度划分，大概可以分为两大类：高级动画API和低级动画API（这里类比高级开发语言的分类，并不是指效果多高级）。 其中高级动画API使用比较简单方便，封装度高，更加适用于日常业务开发，而低级动画API则使用起来较为麻烦，因为其配置项或流程较多，但是却更加灵活，能对动画效果做出更加精细的控制，适合自定义要求度较高的业务场景。 我们还可以按照功能类型进行一个大概的分类，也就是上图中的划分，这里再用表格归类一下：    功能需求点 可能符合的API类型    单个组件的显示隐藏转场动画  每个子组件需要不同的入场&#x2F;出场效果 AnimatedVisibility   根据组件内容状态变化的动画(数据、尺寸等)  不同组件间的切换动画 AnimatedContent ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/05/29/note/Android/compose/Compose%E7%9A%84%E6%89%8B%E5%8A%BF%E6%93%8D%E4%BD%9C%E5%92%8C%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86/" title="Compose的手势操作和事件处理">Compose的手势操作和事件处理</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-05-29T16:00:00.000Z" title="发表于 2025-05-30 00:00:00">2025-05-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a></span></div><div class="content">  Compose 中的手势操作或事件处理全部都是以 Modifier 修饰符的形式提供的，事件处理按照层次可以划分为高级事件处理API和低级事件处理API。 其中高级事件处理API是位于更上层的API，它们都是基于更底层的低级事件处理API实现的，也是开发中比较常用的。高级事件处理API的分类大概如下图所示：  点击事件监听点击事件非常简单，使用 clickable 和 combinedClickable 修饰符即可满足需求： 123456789101112131415161718@OptIn(ExperimentalFoundationApi::class)@Composablefun ClickableExample() &#123;    Column&#123;        Box(Modifier            .clickable &#123; println(&quot;clickable&quot;) &#125;            .size(30.dp)            .background(Color.Red))       ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2024/05/29/note/Android/Android%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB/" title="Android知识体系">Android知识体系</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2024-05-29T16:00:00.000Z" title="发表于 2024-05-30 00:00:00">2024-05-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a></span></div><div class="content">JavaJava基础 集合 反射 泛型 异常机制  经典文章常见问题 HashMap讲一下，数据结构、hash过程、扩容、加载因子为何是0.75等。 LRU如何实现的？LinkedHashMap如何实现的？LinkedHashMap是否线程安全？如何实现线程安全？有序还是无序？ ThreadLocal干嘛的？用法和原理。 泛型擦除，为何会有擦除？擦除的时机、为何会有协变和逆变  Java并发编程 线程的生命周期 线程池参数及常用线程池 synchronized和volatile区别  经典文章Java并发编程：volatile关键字解析 常见问题JVM JVM内存模型 类加载机制。 类的加载过程（类的生命周期）  经典文章 Java虚拟机（JVM）你只要看这一篇就够了！  常见问题 1、内存回收机制与GC算法(各种算法的优缺点以及应用场景)；2、内存泄露场景及避免和解决方法  AndroidAndroid系统 Android平台架构 进程间通信方式 Binder机制 Android系统启动流程  经典文章常见问题： 1、Android系统启动流程 ？2、Jvm、Art 和...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2023/03/27/posts/%E5%85%B3%E4%BA%8EKotlin%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E3%80%81init%E5%87%BD%E6%95%B0%E5%92%8C%E5%B1%9E%E6%80%A7%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%E9%A1%BA%E5%BA%8F%E6%8E%A2%E7%A9%B6/" title="关于Kotlin构造函数、init函数和变量初始化的顺序探究">关于Kotlin构造函数、init函数和变量初始化的顺序探究</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-03-27T13:57:53.000Z" title="发表于 2023-03-27 21:57:53">2023-03-27</time></span></div><div class="content">Kotlin既有主构函数，又有次构函数，还有一个init函数，甚至还有属性的初始化，这些执行的顺序是怎么样的，一起来看看。 测试开始测试类怎么在主构函数，和属性初始化执行时，打印一个结果呢？毕竟这二者是没有函数体的。我的答案是Kotlin的also函数，这样就可以在执行的同时打印一个log了。 12345678910111213141516171819class ClassTest constructor(      value: Int = 1.also &#123;          Log.d(&quot;test&quot;, &quot;主构函数&quot;)      &#125;  ) &#123;      constructor(value: String): this(3) &#123;          Log.d(&quot;test&quot;, &quot;次构函数&quot;)      &#125;      val value2 = 2.also &#123;          Log.d(&quot;test&quot;,...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2023/02/13/posts/Java%E7%9A%84%E7%BB%A7%E6%89%BF%E5%92%8C%E7%BB%84%E5%90%88/" title="Java的继承和组合">Java的继承和组合</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2023-02-13T18:18:47.000Z" title="发表于 2023-02-14 02:18:47">2023-02-14</time></span></div><div class="content">前言继承破坏封装Java有个三原则：封装、继承、多态。封装就是对外隐藏实现细节，提供简化接口。使用者不需要关心内部是怎么实现的，而且内部的实现细节是可以随时修改的，而不影响使用者。继承可能破坏封装是因为子类和父类可能存在着实现细节的依赖。导致子类在继承父类的时候，往往不得不关心父类的实现细节，而父类在修改其实现细节的时候，如果不考虑子类，也往往会影响子类。 封装是如何被破坏的考虑以下基类Base： 123456789101112131415public class Base &#123;	private static final int MAX_NUM = 1000;	private int[] arr = new int[MAX_NUM];	private int count;	public void add(int number)&#123;		if(count&lt;MAX_NUM)&#123;			arr[count++] = number;		&#125;	&#125;	public void addAll(int[] numbers)&#123;		for(int...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2022/09/21/posts/LiveData%E5%8E%9F%E7%90%86/" title="LiveData原理">LiveData原理</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-09-21T18:20:40.000Z" title="发表于 2022-09-22 02:20:40">2022-09-22</time></span></div><div class="content">LiveData的使用123456789val livedata = LiveData&lt;Int&gt;()//发送数据livedata.setValue()//立即生效，只能在主线程调用livedata.postValue()//通过Handler转到主线程，有丢失数据的风险，可以用来在子线程调用//观察数据void observe(@NonNull LifecycleOwner owner, @NonNull Observer&lt;? super T&gt; observer)livedata.observe(this) &#123;&#125;//第一个参数是一个`LifecycleOwner`对象，这个让LiveData具有与生命周期绑定的能力。//第二个参数是一个`Observer`，是一个回调 LiveData的使用是十分的简单的，其原理也并不复杂。 observe方法123456789101112131415161718192021@MainThread  //@MainThread...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2022/09/21/posts/ViewModel%E7%9A%84%E7%A0%94%E7%A9%B6/" title="ViewModel的研究">ViewModel的研究</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-09-21T18:20:40.000Z" title="发表于 2022-09-22 02:20:40">2022-09-22</time></span></div><div class="content">ViewModel的使用场景 Activity or...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2022/08/25/posts/Handler/" title="Handler">Handler</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-25T13:57:53.000Z" title="发表于 2022-08-25 21:57:53">2022-08-25</time></span></div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2022/08/24/posts/SharedPreferences/" title="SharedPreferences">SharedPreferences</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-24T13:57:53.000Z" title="发表于 2022-08-24 21:57:53">2022-08-24</time></span></div><div class="content">SharedPreferences是以键值对的方式保存数据的，数据存放在xml文件中。 获取SharedPreferences Context类的getSharedPreferences()方法。参数一：指定文件名称；参数二：指定操作模式，Android4.2之后只有MODE_PRIVATE一种模式。 Activity类的getPreferences()方法。文件名称默认是当前Activity的类名，接受一操作模式参数。 PreferenceManager类中的getDefaultSharedPerferences()方法。这是一个静态方法，接受一个Context参数，并自动使用当前应用程序的包名作为前缀命名文件名。  SharedPreferences的使用SharedPreferences对象本身不支持存储和修改，只能获取数据，存储修改是通过SharedPreferences.edit()获取内部接口Editor对象实现。 12345678910111213141516171819202122232425 1）写入数据：    ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2022/08/22/posts/Activity%E7%9A%84%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B/" title="Activity的启动流程">Activity的启动流程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2022-08-22T13:57:53.000Z" title="发表于 2022-08-22 21:57:53">2022-08-22</time></span></div><div class="content">Application的初始化从应用进程到系统进程ActivityThread在创建的时候，会将自己的ApplicationThread绑定到AMS中。  ActivityThread.main() ActivityThread.attach() IActivityManager.attachApplication(mAppThread) Binder.transact()        应用程序通过IActivityManager接口发起系统调用，调用attachApplication并传递IApplicationThread，执行流程从应用进程到了系统进程。  ActivityManagerService.onTransact() ActivityManagerService.attachApplication(IApplicationThread thread)AMS作为IActivityService的接口的服务端实现，会响应客户端的请求，最终attachApplication(IApplicationThread...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/6/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/#content-inner">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/#content-inner">8</a><a class="extend next" rel="next" href="/page/8/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">78</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/note/"><span class="card-category-list-name">note</span><span class="card-category-list-count">7</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/SharedPreferences/" style="font-size: 1.1em; color: #999">SharedPreferences</a> <a href="/tags/%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86/" style="font-size: 1.1em; color: #999">事件处理</a> <a href="/tags/Kotlin/" style="font-size: 1.2em; color: #999da3">Kotlin</a> <a href="/tags/%E5%8A%A8%E7%94%BB/" style="font-size: 1.1em; color: #999">动画</a> <a href="/tags/Handler/" style="font-size: 1.1em; color: #999">Handler</a> <a href="/tags/%E7%BB%98%E5%88%B6%E6%B5%81%E7%A8%8B/" style="font-size: 1.1em; color: #999">绘制流程</a> <a href="/tags/Gridea/" style="font-size: 1.1em; color: #999">Gridea</a> <a href="/tags/View/" style="font-size: 1.3em; color: #99a1ac">View</a> <a href="/tags/Accompanist/" style="font-size: 1.1em; color: #999">Accompanist</a> <a href="/tags/%E6%89%8B%E5%8A%BF/" style="font-size: 1.1em; color: #999">手势</a> <a href="/tags/Android/" style="font-size: 1.5em; color: #99a9bf">Android</a> <a href="/tags/Java%E5%AD%A6%E4%B9%A0/" style="font-size: 1.1em; color: #999">Java学习</a> <a href="/tags/%E9%97%AE%E9%A2%98/" style="font-size: 1.1em; color: #999">问题</a> <a href="/tags/LiveData/" style="font-size: 1.2em; color: #999da3">LiveData</a> <a href="/tags/Activity/" style="font-size: 1.1em; color: #999">Activity</a> <a href="/tags/Paging3/" style="font-size: 1.1em; color: #999">Paging3</a> <a href="/tags/Compose/" style="font-size: 1.4em; color: #99a5b6">Compose</a> <a href="/tags/Jetpack/" style="font-size: 1.2em; color: #999da3">Jetpack</a> <a href="/tags/Java/" style="font-size: 1.1em; color: #999">Java</a> <a href="/tags/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%B8%83%E5%B1%80/" style="font-size: 1.1em; color: #999">自定义布局</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      <a class="card-more-btn" href="/archives/"
+            title="查看更多">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/06/">
+            <span class="card-archive-list-date">
+              六月 2025
+            </span>
+            <span class="card-archive-list-count">56</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/05/">
+            <span class="card-archive-list-date">
+              五月 2025
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2024/05/">
+            <span class="card-archive-list-date">
+              五月 2024
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/03/">
+            <span class="card-archive-list-date">
+              三月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/02/">
+            <span class="card-archive-list-date">
+              二月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/09/">
+            <span class="card-archive-list-date">
+              九月 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/08/">
+            <span class="card-archive-list-date">
+              八月 2022
+            </span>
+            <span class="card-archive-list-count">5</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/04/">
+            <span class="card-archive-list-date">
+              四月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">78</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-06-04T12:46:53.395Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

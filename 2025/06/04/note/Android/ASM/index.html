@@ -1,0 +1,322 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ASM | BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="ASM架构ASM是围绕事件生产者（class parser）、事件消费者（class writer）和各种预定义的事件过滤器的架构。架构图如下所示： 导入ASM库123456dependencies &#123;       &#x2F;&#x2F;ASM相关依赖      implementation &#x27;org.ow2.asm:asm:9.4&#x27;      implementation &amp;#x27">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ASM">
+<meta property="og:url" content="https://bravestsnail.github.io/2025/06/04/note/Android/ASM/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:description" content="ASM架构ASM是围绕事件生产者（class parser）、事件消费者（class writer）和各种预定义的事件过滤器的架构。架构图如下所示： 导入ASM库123456dependencies &#123;       &#x2F;&#x2F;ASM相关依赖      implementation &#x27;org.ow2.asm:asm:9.4&#x27;      implementation &amp;#x27">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:published_time" content="2025-06-04T12:46:35.119Z">
+<meta property="article:modified_time" content="2025-06-04T12:46:35.119Z">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "ASM",
+  "url": "https://bravestsnail.github.io/2025/06/04/note/Android/ASM/",
+  "image": "https://bravestsnail.github.io/images/avatar.png",
+  "datePublished": "2025-06-04T12:46:35.119Z",
+  "dateModified": "2025-06-04T12:46:35.119Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "BravestSnail",
+      "url": "https://bravestsnail.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/2025/06/04/note/Android/ASM/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ASM',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">ASM</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">ASM</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-04T12:46:35.119Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-04T12:46:35.119Z" title="更新于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="ASM架构"><a href="#ASM架构" class="headerlink" title="ASM架构"></a>ASM架构</h1><p>ASM是围绕事件生产者（class parser）、事件消费者（class writer）和各种预定义的事件过滤器的架构。架构图如下所示：<br><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/Pasted%20image%2020221116144652.png" alt="Pasted image 20221116144652"></p>
+<h2 id="导入ASM库"><a href="#导入ASM库" class="headerlink" title="导入ASM库"></a>导入ASM库</h2><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">dependencies</span> &#123;   </span><br><span class="line">    <span class="comment">//ASM相关依赖  </span></span><br><span class="line">    implementation <span class="string">&#x27;org.ow2.asm:asm:9.4&#x27;</span>  </span><br><span class="line">    implementation <span class="string">&#x27;org.ow2.asm:asm-commons:9.4&#x27;</span>  </span><br><span class="line">    implementation <span class="string">&#x27;org.ow2.asm:asm-util:9.4&#x27;</span>  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="Class结构"><a href="#Class结构" class="headerlink" title="Class结构"></a>Class结构</h1><h2 id="简述"><a href="#简述" class="headerlink" title="简述"></a>简述</h2><p>类源码与已编译类之间是有许多不同之处的：</p>
+<ul>
+<li>已编译类只能描述一个类，当源码包含几个类，例如一个源码包含一个类，其中还有一个内部类。它们会被编译成两个类文件：一个主类，一个内部类。主类文件包含它的内部类的引用，并且定义在方法内部的内部类包含对其闭包函数的引用。</li>
+<li>已编译类不包含注释。</li>
+<li>已编译类不包含<code>package</code>和<code>import</code>模块，因此所有的类型名字都必须是全量的。<br>类结构的描述：<br><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/Pasted%20image%2020221116151116.png" alt="Pasted image 20221116151116"></li>
+</ul>
+<h2 id="Class内部描述"><a href="#Class内部描述" class="headerlink" title="Class内部描述"></a>Class内部描述</h2><h3 id="类型描述"><a href="#类型描述" class="headerlink" title="类型描述"></a>类型描述</h3><table>
+<thead>
+<tr>
+<th>Java类型</th>
+<th>类型描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>boolean</td>
+<td>Z</td>
+</tr>
+<tr>
+<td>char</td>
+<td>C</td>
+</tr>
+<tr>
+<td>byte</td>
+<td>B</td>
+</tr>
+<tr>
+<td>short</td>
+<td>S</td>
+</tr>
+<tr>
+<td>int</td>
+<td>I</td>
+</tr>
+<tr>
+<td>float</td>
+<td>F</td>
+</tr>
+<tr>
+<td>long</td>
+<td>J</td>
+</tr>
+<tr>
+<td>double</td>
+<td>D</td>
+</tr>
+<tr>
+<td>Object</td>
+<td>Ljava&#x2F;lang&#x2F;Object;</td>
+</tr>
+<tr>
+<td>int[]</td>
+<td>[I</td>
+</tr>
+<tr>
+<td>Object[][]</td>
+<td>[[Ljava&#x2F;lang&#x2F;Object;</td>
+</tr>
+</tbody></table>
+<h3 id="方法描述"><a href="#方法描述" class="headerlink" title="方法描述"></a>方法描述</h3><table>
+<thead>
+<tr>
+<th>方法源码</th>
+<th>方法描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>void m(int i, float f)</td>
+<td>(IF)V</td>
+</tr>
+<tr>
+<td>int m(Object o)</td>
+<td>(Ljava&#x2F;lang&#x2F;Object;)I</td>
+</tr>
+<tr>
+<td>int[] m(int i, String s)</td>
+<td>(ILjava&#x2F;lang&#x2F;String;)[I</td>
+</tr>
+<tr>
+<td>Object m(int[] i)</td>
+<td>([I)Ljava&#x2F;lang&#x2F;Object;</td>
+</tr>
+</tbody></table>
+<h1 id="ClassVisitor"><a href="#ClassVisitor" class="headerlink" title="ClassVisitor"></a>ClassVisitor</h1><p>ClassVisitor类结构</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">ClassVisitor</span> &#123; </span><br><span class="line">	<span class="keyword">public</span> <span class="title function_">ClassVisitor</span><span class="params">(<span class="type">int</span> api)</span>; </span><br><span class="line">	<span class="keyword">public</span> <span class="title function_">ClassVisitor</span><span class="params">(<span class="type">int</span> api, ClassVisitor cv)</span>; </span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visit</span><span class="params">(<span class="type">int</span> version, <span class="type">int</span> access, String name, String signature, String superName, String[] interfaces)</span>; </span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visitSource</span><span class="params">(String source, String debug)</span>; </span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visitOuterClass</span><span class="params">(String owner, String name, String desc)</span>; </span><br><span class="line">	AnnotationVisitor <span class="title function_">visitAnnotation</span><span class="params">(String desc, <span class="type">boolean</span> visible)</span>; </span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visitAttribute</span><span class="params">(Attribute attr)</span>; </span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visitInnerClass</span><span class="params">(String name, String outerName, String innerName, <span class="type">int</span> access)</span>; </span><br><span class="line">	<span class="keyword">public</span> FieldVisitor <span class="title function_">visitField</span><span class="params">(<span class="type">int</span> access, String name, String desc, String signature, Object value)</span>; </span><br><span class="line">	<span class="keyword">public</span> MethodVisitor <span class="title function_">visitMethod</span><span class="params">(<span class="type">int</span> access, String name, String desc, String signature, String[] exceptions)</span>; </span><br><span class="line">	<span class="keyword">void</span> <span class="title function_">visitEnd</span><span class="params">()</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ClassVisitor</code>类方法的调用必须随着下面的顺序：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">visit visitSource? visitOuterClass? ( visitAnnotation | visitAttribute )* (visitInnerClass | visitField | visitMethod )* visitEnd</span><br></pre></td></tr></table></figure>
+<p><code>FieldVisitor</code>类结构</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">FieldVisitor</span> &#123; </span><br><span class="line">	<span class="keyword">public</span> <span class="title function_">FieldVisitor</span><span class="params">(<span class="type">int</span> api)</span>; </span><br><span class="line">	<span class="keyword">public</span> <span class="title function_">FieldVisitor</span><span class="params">(<span class="type">int</span> api, FieldVisitor fv)</span>;</span><br><span class="line">	<span class="keyword">public</span> AnnotationVisitor <span class="title function_">visitAnnotation</span><span class="params">(String desc, <span class="type">boolean</span> visible)</span>; </span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visitAttribute</span><span class="params">(Attribute attr)</span>; </span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">visitEnd</span><span class="params">()</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="解析类"><a href="#解析类" class="headerlink" title="解析类"></a>解析类</h2><p><code>ClassReader</code>能够解析存在的<code>class</code>，接下来一个例子是一个<code>ClassPrinter</code>用来打印访问类的信息。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ClassPrinter</span>: ClassVisitor(Opcodes.ASM5) &#123;  </span><br><span class="line">    override fun <span class="title function_">visit</span><span class="params">(  </span></span><br><span class="line"><span class="params">        version: Int,  </span></span><br><span class="line"><span class="params">        access: Int,  </span></span><br><span class="line"><span class="params">        name: String?,  </span></span><br><span class="line"><span class="params">        signature: String?,  </span></span><br><span class="line"><span class="params">        superName: String?,  </span></span><br><span class="line"><span class="params">        interfaces: Array&lt;out String&gt;?  </span></span><br><span class="line"><span class="params">    )</span> &#123;  </span><br><span class="line">        println(<span class="string">&quot;$name extends $superName &#123;&quot;</span>)  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    override fun <span class="title function_">visitField</span><span class="params">(  </span></span><br><span class="line"><span class="params">        access: Int,  </span></span><br><span class="line"><span class="params">        name: String?,  </span></span><br><span class="line"><span class="params">        descriptor: String?,  </span></span><br><span class="line"><span class="params">        signature: String?,  </span></span><br><span class="line"><span class="params">        value: Any?  </span></span><br><span class="line"><span class="params">    )</span>: FieldVisitor? &#123;  </span><br><span class="line">        println(<span class="string">&quot; $descriptor $name&quot;</span>)  </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    override fun <span class="title function_">visitMethod</span><span class="params">(  </span></span><br><span class="line"><span class="params">        access: Int,  </span></span><br><span class="line"><span class="params">        name: String?,  </span></span><br><span class="line"><span class="params">        descriptor: String?,  </span></span><br><span class="line"><span class="params">        signature: String?,  </span></span><br><span class="line"><span class="params">        exceptions: Array&lt;out String&gt;?  </span></span><br><span class="line"><span class="params">    )</span>: MethodVisitor? &#123;  </span><br><span class="line">        println(<span class="string">&quot; $name $descriptor&quot;</span>)  </span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    override fun <span class="title function_">visitEnd</span><span class="params">()</span> &#123;  </span><br><span class="line">        println(<span class="string">&quot;&#125;&quot;</span>)  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后将<code>ClassReader</code>和<code>ClassPrinter</code>结合起来。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> cp = ClassPrinter();  </span><br><span class="line"><span class="keyword">val</span> cr = ClassReader(<span class="string">&quot;java.lang.Runnable&quot;</span>)  </span><br><span class="line">cr.accept(cp, <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>整个事件从<code>accept()</code>方法产生，然后依次调用<code>ClassPrinter</code>中的方法，并打印相关信息。</p>
+<h2 id="生成类"><a href="#生成类" class="headerlink" title="生成类"></a>生成类</h2><p>通过<code>ClassWriter</code>可以生成类，看以下的接口，我们将通过<code>ClassWriter</code>生成这样一个类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Comparable</span> <span class="keyword">extends</span> <span class="title class_">Object</span> &#123; </span><br><span class="line">	<span class="type">int</span> <span class="variable">LESS</span> <span class="operator">=</span> -<span class="number">1</span>; </span><br><span class="line">	<span class="type">int</span> <span class="variable">EQUAL</span> <span class="operator">=</span> <span class="number">0</span>; </span><br><span class="line">	<span class="type">int</span> <span class="variable">GREATER</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">	<span class="type">int</span> <span class="title function_">compareTo</span><span class="params">(Object o)</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>生成这样一个接口只需要调用<code>ClassVisitor</code>六个方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> cw = ClassWriter(<span class="number">0</span>)</span><br><span class="line">cw.visit(  </span><br><span class="line">	V1_8,  </span><br><span class="line">	ACC_PUBLIC + ACC_ABSTRACT + ACC_INTERFACE,  </span><br><span class="line">	<span class="string">&quot;com/bravestsnail/router/asm/Comparable&quot;</span>,  </span><br><span class="line">	<span class="literal">null</span>, <span class="string">&quot;java.lang.Object&quot;</span>, arrayOf()  </span><br><span class="line">)  </span><br><span class="line">cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, <span class="string">&quot;LESS&quot;</span>, <span class="string">&quot;I&quot;</span>, <span class="literal">null</span>, -<span class="number">1</span>).visitEnd()  </span><br><span class="line">cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, <span class="string">&quot;EQUAL&quot;</span>, <span class="string">&quot;I&quot;</span>, <span class="literal">null</span>, <span class="number">0</span>).visitEnd()  </span><br><span class="line">cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, <span class="string">&quot;GREATER&quot;</span>, <span class="string">&quot;I&quot;</span>, <span class="literal">null</span>, <span class="number">1</span>).visitEnd()  </span><br><span class="line">cw.visitMethod(ACC_PUBLIC + ACC_ABSTRACT, <span class="string">&quot;compareTo&quot;</span>, <span class="string">&quot;(Ljava/lang/object;)I&quot;</span>, <span class="literal">null</span>, <span class="literal">null</span>).visitEnd()  </span><br><span class="line">cw.visitEnd()  </span><br><span class="line"><span class="keyword">val</span> b = cw.toByteArray()</span><br></pre></td></tr></table></figure>
+<p>第二行代码代表的意义：<br>定义一个<code>com/bravestsnail/router/asm/Comparable</code>，其java版本1.8，修饰符为<code>public+abstract+interface</code>代表是一个接口，其没有泛型，父类为<code>java.lang.Object</code>, 接口列表为空。<br>接下来三行定义了三个静态常量，调用<code>visitEnd()</code>是代表立即结束<code>FieldVisitor</code>的访问。<br>接下来一行定义了<code>compareTo</code>抽象方法。</p>
+<h2 id="转换类"><a href="#转换类" class="headerlink" title="转换类"></a>转换类</h2><p>看以下转换类的简单示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">byte</span>[] b1 = ...; <span class="type">ClassWriter</span> <span class="variable">cw</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ClassWriter</span>(<span class="number">0</span>); </span><br><span class="line"><span class="comment">// cv forwards all events to cw </span></span><br><span class="line"><span class="type">ClassVisitor</span> <span class="variable">cv</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ClassVisitor</span>(ASM4, cw) &#123; &#125;; </span><br><span class="line"><span class="type">ClassReader</span> <span class="variable">cr</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ClassReader</span>(b1); </span><br><span class="line">cr.accept(cv, <span class="number">0</span>); </span><br><span class="line"><span class="type">byte</span>[] b2 = cw.toByteArray(); <span class="comment">// b2 represents the same class as b1</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/Pasted%20image%2020221116202306.png" alt="Pasted image 20221116202306"><br>上面是转换链，由Reader产生事件，Adapter对这些进行转换，最终转换的结果在Writer重建。<br>接下来看一个转换java版本的Adapter：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public class ChangeVersionAdapter extends ClassVisitor &#123; </span><br><span class="line">	public ChangeVersionAdapter(ClassVisitor cv) &#123; super(ASM4, cv); &#125; </span><br><span class="line">	</span><br><span class="line">	@Override public void visit(int version, int access, String name, String </span><br><span class="line">		signature, String superName, String[] interfaces) &#123; </span><br><span class="line">		cv.visit(V1_5, access, name, signature, superName, interfaces);</span><br><span class="line">	 &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的类在<code>visit()</code>方法中对该事件进行了转发，并且修改java版本为1.5。<br>看看整个过程的时序图：<br><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/Pasted%20image%2020221116203123.png" alt="Pasted image 20221116203123"></p>
+<h2 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h2><p>当<code>ClassReader</code>和<code>ClassWriter</code>互相持有对方的引用，将会执行一项优化，直接复制<code>ClassReader</code>中不需要转换的字节数组数据到<code>ClassWriter</code></p>
+<h2 id="移除类成员"><a href="#移除类成员" class="headerlink" title="移除类成员"></a>移除类成员</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RemoveDebugAdapter</span>(cv: ClassVisitor?) : ClassVisitor(ASM4, cv) &#123;  </span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">visitSource</span><span class="params">(source: <span class="type">String</span>?, debug: <span class="type">String</span>?)</span></span> &#123;&#125;  </span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">visitOuterClass</span><span class="params">(owner: <span class="type">String</span>?, name: <span class="type">String</span>?, desc: <span class="type">String</span>?)</span></span> &#123;&#125;  </span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">visitInnerClass</span><span class="params">(  </span></span></span><br><span class="line"><span class="params"><span class="function">        name: <span class="type">String</span>?, outerName: <span class="type">String</span>?,  </span></span></span><br><span class="line"><span class="params"><span class="function">        innerName: <span class="type">String</span>?, access: <span class="type">Int</span>  </span></span></span><br><span class="line"><span class="params"><span class="function">    )</span></span> &#123;&#125;  </span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">visitMethod</span><span class="params">(  </span></span></span><br><span class="line"><span class="params"><span class="function">	    access: <span class="type">Int</span>, name: <span class="type">String</span>,  </span></span></span><br><span class="line"><span class="params"><span class="function">	    desc: <span class="type">String</span>, signature: <span class="type">String</span>?, exceptions: <span class="type">Array</span>&lt;<span class="type">String</span>?&gt;?  </span></span></span><br><span class="line"><span class="params"><span class="function">	)</span></span>: MethodVisitor? &#123;  </span><br><span class="line">	    <span class="keyword">return</span> <span class="literal">null</span>  </span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>移除类成员可以通过不转发相应事件或者返回null。</p>
+<h2 id="添加类成员"><a href="#添加类成员" class="headerlink" title="添加类成员"></a>添加类成员</h2><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">AddFieldAdapter</span>(  </span><br><span class="line">    cv: ClassVisitor?, <span class="keyword">private</span> <span class="keyword">val</span> fAcc: <span class="built_in">Int</span>, <span class="keyword">private</span> <span class="keyword">val</span> fName: String,  </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> fDesc: String  </span><br><span class="line">) : ClassVisitor(ASM4, cv) &#123;  </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> isFieldPresent = <span class="literal">false</span>  </span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">visitField</span><span class="params">(  </span></span></span><br><span class="line"><span class="params"><span class="function">        access: <span class="type">Int</span>, name: <span class="type">String</span>, desc: <span class="type">String</span>?,  </span></span></span><br><span class="line"><span class="params"><span class="function">        signature: <span class="type">String</span>?, value: <span class="type">Any</span>?  </span></span></span><br><span class="line"><span class="params"><span class="function">    )</span></span>: FieldVisitor &#123;  </span><br><span class="line">        <span class="keyword">if</span> (name == fName) &#123;  </span><br><span class="line">            isFieldPresent = <span class="literal">true</span>  </span><br><span class="line">        &#125;  </span><br><span class="line">        <span class="keyword">return</span> cv.visitField(access, name, desc, signature, value)  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">visitEnd</span><span class="params">()</span></span> &#123;  </span><br><span class="line">        <span class="keyword">if</span> (!isFieldPresent) &#123;  </span><br><span class="line">            <span class="keyword">val</span> fv: FieldVisitor = cv.visitField(fAcc, fName, fDesc, <span class="literal">null</span>, <span class="literal">null</span>)  </span><br><span class="line">            <span class="keyword">if</span> (fv != <span class="literal">null</span>) &#123;  </span><br><span class="line">                fv.visitEnd()  </span><br><span class="line">            &#125;  </span><br><span class="line">        &#125;  </span><br><span class="line">        cv.visitEnd()  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="类分析工具"><a href="#类分析工具" class="headerlink" title="类分析工具"></a>类分析工具</h2><h3 id="TraceClassVisitor"><a href="#TraceClassVisitor" class="headerlink" title="TraceClassVisitor"></a>TraceClassVisitor</h3><p>追踪打印类结构</p>
+<h3 id="CheckClassAdapter"><a href="#CheckClassAdapter" class="headerlink" title="CheckClassAdapter"></a>CheckClassAdapter</h3><p>检查生成的类</p>
+<h3 id="ASMifier"><a href="#ASMifier" class="headerlink" title="ASMifier"></a>ASMifier</h3><p>将class文件转换成ASM代码</p>
+<h1 id="Method结构"><a href="#Method结构" class="headerlink" title="Method结构"></a>Method结构</h1></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io">BravestSnail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io/2025/06/04/note/Android/ASM/">https://bravestsnail.github.io/2025/06/04/note/Android/ASM/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://bravestsnail.github.io" target="_blank">BravestSnail's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/05/29/note/Android/compose/Compose%E7%9A%84%E6%89%8B%E5%8A%BF%E6%93%8D%E4%BD%9C%E5%92%8C%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86/" title="Compose的手势操作和事件处理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Compose的手势操作和事件处理</div></div><div class="info-2"><div class="info-item-1">  Compose 中的手势操作或事件处理全部都是以 Modifier 修饰符的形式提供的，事件处理按照层次可以划分为高级事件处理API和低级事件处理API。 其中高级事件处理API是位于更上层的API，它们都是基于更底层的低级事件处理API实现的，也是开发中比较常用的。高级事件处理API的分类大概如下图所示：  点击事件监听点击事件非常简单，使用 clickable 和 combinedClickable 修饰符即可满足需求： 123456789101112131415161718@OptIn(ExperimentalFoundationApi::class)@Composablefun ClickableExample() &#123;    Column&#123;        Box(Modifier            .clickable &#123; println(&quot;clickable&quot;) &#125;            .size(30.dp)            .background(Color.Red))       ...</div></div></div></a><a class="pagination-related" href="/2025/06/04/note/Android/Android%20%E6%89%AB%E6%8F%8F%E5%8C%85%E4%B8%8B%E7%B1%BB/" title="Android 扫描包下类"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Android 扫描包下类</div></div><div class="info-2"><div class="info-item-1">Android(安卓)获取接口的所有实现类Android ClassesReader 扫描指定包下所有Class  DexFile已经被弃用,可以考虑用hilt或者dagger替代  </div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">78</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ASM%E6%9E%B6%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">ASM架构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E5%85%A5ASM%E5%BA%93"><span class="toc-number">1.1.</span> <span class="toc-text">导入ASM库</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Class%E7%BB%93%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">Class结构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E8%BF%B0"><span class="toc-number">2.1.</span> <span class="toc-text">简述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Class%E5%86%85%E9%83%A8%E6%8F%8F%E8%BF%B0"><span class="toc-number">2.2.</span> <span class="toc-text">Class内部描述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B1%BB%E5%9E%8B%E6%8F%8F%E8%BF%B0"><span class="toc-number">2.2.1.</span> <span class="toc-text">类型描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E6%8F%8F%E8%BF%B0"><span class="toc-number">2.2.2.</span> <span class="toc-text">方法描述</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ClassVisitor"><span class="toc-number">3.</span> <span class="toc-text">ClassVisitor</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E6%9E%90%E7%B1%BB"><span class="toc-number">3.1.</span> <span class="toc-text">解析类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E7%B1%BB"><span class="toc-number">3.2.</span> <span class="toc-text">生成类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BD%AC%E6%8D%A2%E7%B1%BB"><span class="toc-number">3.3.</span> <span class="toc-text">转换类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%98%E5%8C%96"><span class="toc-number">3.4.</span> <span class="toc-text">优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A7%BB%E9%99%A4%E7%B1%BB%E6%88%90%E5%91%98"><span class="toc-number">3.5.</span> <span class="toc-text">移除类成员</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E7%B1%BB%E6%88%90%E5%91%98"><span class="toc-number">3.6.</span> <span class="toc-text">添加类成员</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B1%BB%E5%88%86%E6%9E%90%E5%B7%A5%E5%85%B7"><span class="toc-number">3.7.</span> <span class="toc-text">类分析工具</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#TraceClassVisitor"><span class="toc-number">3.7.1.</span> <span class="toc-text">TraceClassVisitor</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CheckClassAdapter"><span class="toc-number">3.7.2.</span> <span class="toc-text">CheckClassAdapter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ASMifier"><span class="toc-number">3.7.3.</span> <span class="toc-text">ASMifier</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Method%E7%BB%93%E6%9E%84"><span class="toc-number">4.</span> <span class="toc-text">Method结构</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,556 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Compose 编译器 | BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Jetpack Compose由一系列的库组成，但我们需要重点关注三个特定的库：Compose compiler、Compose runtime 和 Compose UI。 其中 Compose编译器 和 Compose runtime 是Jetpack Compose的支柱。从技术上讲，Compose UI 不是Compose体系结构的一部分，因为运行时和编译器被设计为通用的，并由符合其需求的任">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Compose 编译器">
+<meta property="og:url" content="https://bravestsnail.github.io/2025/06/04/note/Android/compose/Compose%E6%B7%B1%E5%85%A5%E6%8E%A2%E7%B4%A2/Compose%20%E7%BC%96%E8%AF%91%E5%99%A8/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:description" content="Jetpack Compose由一系列的库组成，但我们需要重点关注三个特定的库：Compose compiler、Compose runtime 和 Compose UI。 其中 Compose编译器 和 Compose runtime 是Jetpack Compose的支柱。从技术上讲，Compose UI 不是Compose体系结构的一部分，因为运行时和编译器被设计为通用的，并由符合其需求的任">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:published_time" content="2025-06-04T12:46:35.124Z">
+<meta property="article:modified_time" content="2025-06-04T12:46:35.124Z">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Compose 编译器",
+  "url": "https://bravestsnail.github.io/2025/06/04/note/Android/compose/Compose%E6%B7%B1%E5%85%A5%E6%8E%A2%E7%B4%A2/Compose%20%E7%BC%96%E8%AF%91%E5%99%A8/",
+  "image": "https://bravestsnail.github.io/images/avatar.png",
+  "datePublished": "2025-06-04T12:46:35.124Z",
+  "dateModified": "2025-06-04T12:46:35.124Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "BravestSnail",
+      "url": "https://bravestsnail.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/2025/06/04/note/Android/compose/Compose%E6%B7%B1%E5%85%A5%E6%8E%A2%E7%B4%A2/Compose%20%E7%BC%96%E8%AF%91%E5%99%A8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Compose 编译器',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Compose 编译器</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">Compose 编译器</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-04T12:46:35.124Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-04T12:46:35.124Z" title="更新于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>Jetpack Compose由一系列的库组成，但我们需要重点关注三个特定的库：<strong>Compose compiler</strong>、<strong>Compose runtime</strong> 和 <strong>Compose UI</strong>。</p>
+<p>其中 <strong>Compose编译器</strong> 和 <strong>Compose runtime</strong> 是Jetpack Compose的支柱。从技术上讲，Compose UI 不是Compose体系结构的一部分，因为运行时和编译器被设计为通用的，并由符合其需求的任何客户端库使用。Compose UI 只是其中一个可用的客户端。还有其他的客户端库正在开发中，比如<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=JetBrains&spm=1001.2101.3001.7020">JetBrains</a>为桌面和Web开发的客户端库。也就是说，浏览Compose UI将帮助我们理解Compose如何提供可组合树的运行时内存表示，以及它最终如何从其中物化真正的元素。</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/e739727f5ceb26727b22730e890240b8.png" alt="在这里插入图片描述"></p>
+<p>到目前为止，我们已经了解到Compose编译器和Compose runtime一起工作来解锁所有的库特性，但这可能仍然有点太抽象了，因为我们还不太足够熟悉它。关于Compose编译器会采取什么操作使我们的代码符合runtime要求，runtime如何工作，何时触发初始组合和进一步的重组，如何在内存中提供树的表示，如何将这些信息用于进一步的重组……等等，我们可能希望得到更深入的解释。掌握这样的概念可以帮助我们在编写代码时对库的工作方式和期望有一个全面的认识。</p>
+<h3 id="Kotlin编译器插件"><a href="#Kotlin编译器插件" class="headerlink" title="Kotlin编译器插件"></a><a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=Kotlin">Kotlin</a>编译器插件</h3><p>Jetpack Compose有点依赖于代码生成。在Kotlin和JVM的世界中，通常的方法是通过<strong>kapt</strong>实现注解处理器，但是Jetpack Compose不同于此。<strong>Compose编译器实际上是一个Kotlin编译器插件</strong>。这使得库能够将其编译工作嵌入到Kotlin的编译阶段，从而获得关于代码形式的更多相关信息，并加快整个过程。虽然<strong>kapt</strong>需要在编译之前运行，但<strong>编译器插件可以直接内联到编译过程中</strong>。</p>
+<p>作为一个Kotlin编译器插件也提供了在编译器的前端阶段报告诊断异常的机会，提供了一个非常快速的反馈循环。但是，这些诊断不会在IDE中得到报告，因为IDEA没有直接与插件集成。我们今天在Compose中可以找到的任何IDEA级别的检查都是通过一个单独的IDEA插件添加的，这个插件不与Compose编译器插件共享任何代码。也就是说，只要我们按下编译按钮，前端诊断就会被报告。改进反馈循环是Kotlin编译器前端阶段静态分析的最终好处，Jetpack Compose编译器很好地利用了这一点。</p>
+<p>Kotlin编译器插件的另一个巨大优势是，它们可以随意调整现有的源代码（不只是像注解处理器那样添加新代码）。它们能够在这些元素被降级为更底层的产物之前，修改它的输出 IR ，进而可以将其转换为目标平台支持的原语（记住Kotlin是支持多平台的）。这将使Compose编译器能够根据runtime的需要来<strong>转换Composable函数</strong>。</p>
+<p>编译器插件在Kotlin中有着前途无量的未来。许多已知的注解处理器可能会通过<strong>KSP</strong>逐渐迁移为编译器插件或“轻量级”编译器插件。</p>
+<blockquote>
+<p>如果你对Kotlin编译器插件特别感兴趣，我强烈建议你学习一下<strong>KSP</strong> (Kotlin符号处理器)，谷歌提议将其作为<strong>Kapt</strong>的替代品。<strong>KSP</strong>提出了一种规范化的<strong>DSL</strong>，用于“编写轻量级编译器插件”，任何库都可以依赖它进行元编程。如果你对<strong>KSP</strong>感兴趣的话，可以参考我的博文：<a target="_blank" rel="noopener" href="https://blog.csdn.net/lyabc123456/article/details/128531692">Kotlin 元编程之 KSP 全面突破</a> 以及 <a target="_blank" rel="noopener" href="https://blog.csdn.net/lyabc123456/article/details/128720896">Kotlin 元编程之 KSP 实战：通过自定义注解配置Compose导航路由</a>  </p>
+<p>另外，请注意，Jetpack Compose编译器在很大程度上依赖于IR转换，如果将其作为元编程的广泛实践，可能会有危险。如果所有的注解处理器都被翻译成编译器插件，我们可能会有太多的IR转换，类似的事情可能会破坏语言的稳定。调整&#x2F;扩充语言总是有风险的。总的来说，这就是为什么<strong>KSP</strong>可能是一个更好的选择。</p>
+</blockquote>
+<h3 id="Compose-注解"><a href="#Compose-注解" class="headerlink" title="Compose 注解"></a>Compose 注解</h3><p>我们首先需要了解的一件事情是如何注解代码，以便编译器能够扫描所需的元素并发挥它的魔力。让我们从了解可用的Compose注解开始学习。</p>
+<p>即使编译器插件相比注解处理器可以做更多的事情，两者也有一些共同之处。这方面的一个例子是它们的前端编译阶段，经常用于静态分析和验证。</p>
+<p>Compose编译器利用kotlin编译器前端的钩子&#x2F;扩展点来验证它想要强制执行的约束是否满足，类型系统是否正确处理了@Composable函数、声明或表达式。</p>
+<p>除此之外，Compose还提供了其他补充注解，用于在某些特定情况下解锁额外的检查和各种运行时优化或“快捷方式”。所有可用的注解都是由<code>Compose runtime</code>库提供的。</p>
+<blockquote>
+<p>所有的Jetpack Compose注解都是由Compose runtime提供的，因为编译器和runtime模块都很好地利用了这些注解。</p>
+</blockquote>
+<h4 id="Composable"><a href="#Composable" class="headerlink" title="@Composable"></a>@Composable</h4><p><strong>Compose编译器</strong>和<strong>注解处理器</strong>之间最大的区别在于，<strong>Compose可以有效地更改被注解的声明或表达式</strong>。大多数注解处理器无法做到这一点，它们必须生成额外的或者同级声明。这就是Compose编译器使用<strong>IR</strong>转换的原因。<code>@Composable</code>注解实际上改变了事物的<strong>类型</strong>，并且编译器插件被用于在前端阶段强制执行各种规则，以确保<strong>Composable类型</strong>不会被视为与<strong>非Composable的注解类型</strong>对等。</p>
+<p>通过<code>@Composable</code>改变声明或表达式的类型会给它一个“内存”。这就是调用 <code>remember</code> 和利用<code>Composer</code>&#x2F;<code>slot table</code>的能力。它也提供了一个生命周期，使得在其函数体内启动的副作用能够遵从生命周期（ eg：跨越重组的作业）。Composable函数还将被分配一个它们将保留的标识，并在生成的树中有一个位置，这意味着它们可以将Node节点发射到Composition组合树中。</p>
+<blockquote>
+<p>简要回顾：Composable函数表示从数据到节点的映射，该节点在执行时被发送到树中。这个节点可以是一个UI节点，也可以是任何其他性质的节点，这取决于我们用来使用Compose runtime的库。Jetpack Compose runtime使用不绑定到任何特定用例或语义的泛型节点类型。</p>
+</blockquote>
+<h4 id="ComposeCompilerApi"><a href="#ComposeCompilerApi" class="headerlink" title="@ComposeCompilerApi"></a>@ComposeCompilerApi</h4><p>Compose使用这个注解来标记它的某些部分，这些部分只能由编译器使用，其唯一目的是通知潜在用户这一事实，并让他们知道应该谨慎使用它。</p>
+<h4 id="InternalComposeApi"><a href="#InternalComposeApi" class="headerlink" title="@InternalComposeApi"></a>@InternalComposeApi</h4><p>在Compose中，有些api被标记为内部的，因为即使公开的api接口保持不变并冻结到稳定版本，它们也会在内部发生变化。这个注解的范围比语言的<code>internal</code>关键字更广，因为它允许跨模块使用，而Kotlin不支持这个概念。</p>
+<h4 id="DisallowComposableCalls"><a href="#DisallowComposableCalls" class="headerlink" title="@DisallowComposableCalls"></a>@DisallowComposableCalls</h4><p>用于防止在函数内部发生可组合调用。这对于组合函数的内联lambda参数非常有用，因为它们不能安全地在其中包含可组合调用。它最好用于lambdas，因为lambdas不会在每次重组时都被调用。</p>
+<p>这方面的一个例子可以在Compose runtime的<code>remember</code>函数中找到。这个Composable函数记住由计算块产生的值。此块仅在初始组合期间计算，任何进一步的重新组合将始终返回已经生成的值。</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/c6c52f36b1103d8bafe584bc5a915e84.png" alt="在这里插入图片描述"><br>由于这个注解，在<code>calculation</code> lambda中禁止<code>Composable</code>调用。如果允许，那么它们将在调用(发射)时占用 slot table 中的空间，并且在第一次组合之后将被丢弃，因为lambda不再被调用。</p>
+<p>该注解最好用于作为实现细节有条件调用的内联lambdas，但不应该像可组合元素那样是“活的”。之所以需要这样做，是因为内联lambda的特殊之处在于它们“继承”了其父调用上下文的可组合能力。例如，<code>forEach</code>调用的lambda没有标记为<code>@Composable</code>，但是如果<code>forEach</code>本身是在可组合函数中调用的，则可以调用可组合函数。这在<code>forEach</code>和许多其他内联api的情况下是需要的，但在其他一些情况下不需要，如<code>remember</code>，这就是这个注解的用途。</p>
+<p>还需要注意的是，这个注解具有“传染性”，即如果你在标记为<code>@DisallowComposableCalls</code>的内联lambda中调用内联lambda，编译器将要求你将该lambda也标记为<code>@DisallowComposableCalls</code>。</p>
+<p>正如你可能猜到的那样，这可能是一个你永远都不会在任何客户端项目中使用到的注解，但如果你将Jetpack Compose用于除了 Compose UI 外的其他场景，那么它很可能会变得更加有意义。在这种情况下，你可能需要为runtime编写自己的客户端库，这将要求你遵守运行时约束。</p>
+<h4 id="ReadOnlyComposable"><a href="#ReadOnlyComposable" class="headerlink" title="@ReadOnlyComposable"></a>@ReadOnlyComposable</h4><p>当其应用于一个可组合函数时，这意味着我们知道这个可组合函数的主体永远不会写入composition，只会从它读取。对于主体中的所有嵌套Composable调用也必须保持如此。这允许runtime避免生成不需要的代码，如果Composable能够满足这个假设。</p>
+<p>对于任何写入内部composition的Composable，编译器会生成一个“<code>group</code>”来包装它的主体，因此整个<code>group</code>在runtime被触发。这些发出的<code>group</code>为composition提供了关于Composable的必要信息，因此当重新组合需要用不同Composable的数据覆盖它时，它知道如何清除任何已写入的数据，或者如何通过保留Composable的标识来移动这些数据。可以被生成的<code>group</code>有着不同的类型：例如:可重新启动的组，可移动的组……等等。</p>
+<p>要了解<code>group</code>究竟是什么，可以想象在选定文本的给定范围的开始和结束处有一对指针。所有组都有一个源码位置的<code>key</code>，用于存储<code>group</code>，从而解锁<strong>位置记忆</strong>。这个<code>key</code>也是它如何知道在<code>if</code>或<code>else</code>分支条件逻辑之间的不同标识，例如：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/75486f81c8a1b96ed3bf2a4e30aae37e.png" alt="在这里插入图片描述"><br>它们都是文本，但它们具有不同的标识，因为它们对调用者而言表示不同的意思。可移动的组也有一个语义标识<code>Key</code>，因此它们可以在父<code>group</code>中重新排序。</p>
+<p>当我们的可组合对象不写入composition时，生成这些组不会提供任何值，因为它的数据不会被替换或移动。这个注解有助于避免这种情况。</p>
+<p>在Compose库中，关于只读组合的例子可能是许多<code>CompositionLocal</code>默认值或委托它们的<code>utilities</code>，如 <code>Material Colors</code>, <code>Typography</code>，<code>isSystemInDarkTheme()</code>函数，<code>LocalContext</code>，任何关于获取应用<code>resources</code>类型的调用（因为它们依赖于<code>LocalContext</code>或<code>LocalConfiguration</code>）。总的来说，它是关于在运行我们的程序时只设置一次的东西，并且希望保持不变，并且可以从树上的Composables中读取。</p>
+<h4 id="NonRestartableComposable"><a href="#NonRestartableComposable" class="headerlink" title="@NonRestartableComposable"></a>@NonRestartableComposable</h4><p>当其应用于函数或属性<code>getter</code>时，它基本上使其成为一个不可重新启动的Composable。<br>(注意，默认情况下不是所有的组合都是可重新启动的，因为<strong>内联</strong>组合或具有非<code>Unit</code>返回类型的组合都是不可重新启动的)。</p>
+<p>添加该注解时，编译器不会生成允许函数重组或在重组期间跳过所需的引用。请记住，这必须非常谨慎地使用，因为它可能只对非常小的函数有意义，这些函数可能会被重新组合（重新启动）由另一个调用它们的Composable函数调用，因为它们可能包含很少的逻辑，所以对它们来说自我失效没有多大意义。换句话说，它们的无效&#x2F;重组本质上是由它们的父组件&#x2F;封闭组件驱动的。</p>
+<p>为了“准确性”，应该很少或永远不需要这个注解，但如果您知道这种行为将产生更好的性能，则可以将其用作非常轻微的性能优化。</p>
+<h4 id="StableMarker"><a href="#StableMarker" class="headerlink" title="@StableMarker"></a>@StableMarker</h4><p>Compose runtime还提供了一些注解来表示类型的<strong>稳定性</strong>。它们是<code>@StableMarker</code>元注解，以及<code>@Immutable</code>和<code>@Stable</code>注解。让我们从<code>@StableMarker</code>开始。</p>
+<p><code>@StableMarker</code>是一个元注解，它注解了其他的注解，比如<code>@Immutable</code>和<code>@Stable</code>。这听起来可能有点多余，但它是为了可重用性，因此它的含义也适用于用它注解的所有注解。</p>
+<p><code>@StableMarker</code>暗示了与最终注解类型的数据稳定性相关的以下要求：</p>
+<ul>
+<li><strong>对于相同的两个实例，无论何时调用<code>equals</code>的结果总是相同的</strong> 。</li>
+<li><strong>当被注解的类型的公开属性发生变化时，总是会通知其Composition</strong>。</li>
+<li><strong>被注解的类型的所有公开属性也必须是稳定的</strong>。</li>
+</ul>
+<p>第一条要求实际上是在表达”现在相等以后就永远相等”，第二条要求实际上意味着被注解类的所有公开的 <code>var</code> 属性应该使用 <code>mutableStateOf()</code> 来修饰。</p>
+<p>任何用<code>@Immutable</code>或<code>@Stable</code>注解的类型也需要隐含这些要求，因为这两个注解都被标记为<code>@StableMarker</code>，或者换句话说，它们都是作为稳定性的标记。</p>
+<p>请注意，这些是我们给编译器的承诺，这样它就可以在处理源码时做出一些假设，但<strong>在编译时不会验证它们</strong>。这意味着您(开发人员)将决定何时满足所有需求。</p>
+<p>也就是说，Compose编译器将尽力推断某些类型何时满足上述要求，并将这些类型视为稳定类型，而不进行注解。在许多情况下，这是首选的，因为它保证是正确的，然而，有两种情况下，直接注解它们是重要的：</p>
+<ul>
+<li>当它是接口或抽象类的必要契约&#x2F;期望时。该注解不仅成为对编译器的承诺，而且成为了对实现者的要求。</li>
+<li>当实现是可变的，但在稳定性假设下以一种可变性是安全的方式实现时。最常见的例子是，如果类型是可变的，因为它有某种类型的内部缓存，但该类型对应的公共API与缓存的状态无关。</li>
+</ul>
+<h4 id="Immutable"><a href="#Immutable" class="headerlink" title="@Immutable"></a>@Immutable</h4><p>此注解应用于类上，作为编译器的严格承诺，即所有公共可访问的类属性和字段在创建后保持不变。注意，这是一个比语言<code>val</code>关键字<strong>更强的承诺</strong>，因为<code>val</code>只确保属性不能通过<code>setter</code>重新分配，但它可以指向一个可变的数据结构（例如<code>val</code>指向一个类对象，但该对象的数据内容字段可变）。这将打破Compose runtime的期望。换句话说，Compose之所以需要这个注解，本质上是因为Kotlin语言没有提供一种机制（关键字或其他东西）来确保某些数据结构是不可变的。</p>
+<p>基于从类型中读取的值在初始化后永远不会改变的假设，运行时可以对智能重组和跳过重组特性应用优化。</p>
+<p>可以安全地标记为<code>@Immutable</code>的类的一个比较好的例子是一个只有<code>val</code>属性的<strong>数据类</strong>，其中没有一个具有自定义<code>getter</code>（否则在每次调用时都会重新计算，并可能每次返回不同的结果，这会使其成为一个不稳定的api被读取），该数据类的所有属性的类型要么是<strong>基本类型</strong>，要么也是标记为<code>@Immutable</code>的类型。</p>
+<p><code>@Immutable</code>也是一个<code>@StableMarker</code>，如上所述，所以它也继承了它的所有含义。一个被认为是不可变的类型总是遵守为<code>@StableMarker</code>声明的含义，因为它的公开值永远不会改变。<code>@Immutable</code>注解的存在是为了将不可变类型标记为稳定类型。</p>
+<blockquote>
+<p>值得注意的是，不可变类型不会通知组合它们的值发生变化，虽然这是<code>@StableMarker</code>中列出的要求之一，但它们实际上不必这样做，因为它们的值根本就不会改变，所以它无论如何都满足约束。</p>
+</blockquote>
+<h4 id="Stable"><a href="#Stable" class="headerlink" title="@Stable"></a>@Stable</h4><p>这个可能比<code>@Immutable</code>要轻松一些。根据其应用到的语言元素不同，它有不同的含义。</p>
+<p>当这个注解应用于一个类型时，它意味着该类型是<strong>可变的</strong>（否则我们将使用<code>@Immutable</code>），并且它只具有由<code>@StableMarker</code>继承的含义。</p>
+<p>当<code>@Stable</code>注解应用于函数或属性时，它会告诉编译器，<strong>该函数对于相同的输入总是返回相同的结果(纯函数)</strong>。只有当函数的参数也是<code>@Stable</code>、<code>@Immutable</code>或基本类型（这些类型被认为是稳定的）时，才有可能这样做。</p>
+<p>官方文档中有一个很好的例子可以说明这与runtime有多么相关：当所有作为参数传递给Composable函数的类型都被标记为稳定时，则根据位置记忆比较参数值是否相等，如果所有值都与前一次调用相同，则跳过调用。</p>
+<p>可以标记为<code>@Stable</code>的类型的一个例子是，<strong>一个对象，其公开属性不会改变，但不能被认为是不可变的。例如，它具有私有可变状态，或者它使用属性委托给<code>MutableState</code>对象，但就外部如何使用它而言，它是不可变的。</strong></p>
+<p>再一次，编译器和runtime使用此注解的含义来假设数据将如何演变(或不演变)，并在需要的地方采取捷径。同样，除非您完全确定它的含义得到了满足，否则决不应该使用该注解。否则，我们将向编译器提供不正确的信息，这很容易导致运行时错误。这就是为什么建议谨慎使用所有这些注解的原因。</p>
+<blockquote>
+<p>值得强调的是，即使<code>@Immutable</code>和<code>@Stable</code>注解是具有不同含义的不同承诺，但今天Jetpack Compose编译器以相同的方式对待它们：启用和优化智能重组和跳过重组。</p>
+</blockquote>
+<p><code>@Stable</code>实际上是适用于从技术上讲是可变的，但主观上我们认为它不会变的类。</p>
+<h3 id="注册编译器扩展"><a href="#注册编译器扩展" class="headerlink" title="注册编译器扩展"></a>注册编译器扩展</h3><p>一旦我们了解了runtime提供的最相关的注解，就可以了解Compose编译器插件是如何工作的，以及它是如何使用这些注解的。</p>
+<p>Compose编译器插件做的第一件事是使用<code>ComponentRegistrar</code>将自己注册到Kotlin编译器管道中，这是Kotlin编译器为此提供的机制。<code>ComposeComponentRegistrar</code>为不同的目的注册一系列编译器扩展。这些扩展将负责简化库的使用，并为runtime生成所需的代码。所有注册的扩展都将与Kotlin编译器一起运行。</p>
+<p>Compose编译器还根据启用的编译器标志注册一些扩展。使用Jetpack Compose的开发人员有机会启用一些特定的编译器标志，允许他们启用一些功能，如实时文字，包括生成代码中的源信息，以便Android Studio和其他工具可以检查组合，优化记忆函数，抑制Kotlin版本兼容性检查，或者在IR转换中生成欺骗方法。</p>
+<blockquote>
+<p>如果我们有兴趣深入了解编译器插件是如何注册编译器扩展的，或者其他进一步的探索，请记住，我们可以在 <a target="_blank" rel="noopener" href="https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/compiler/compiler-hosted/src/main/java/androidx/compose/compiler/plugins/kotlin/ComposePlugin.kt">cs.android.com</a>上浏览源代码。</p>
+</blockquote>
+<h3 id="Kotlin编译器版本"><a href="#Kotlin编译器版本" class="headerlink" title="Kotlin编译器版本"></a>Kotlin编译器版本</h3><p>Compose编译器需要一个非常特定的Kotlin版本，因此它会检查所使用的Kotlin编译器版本是否与所需的版本匹配。这发生在第一次检查中，因为如果不匹配的话它将是一个大的障碍。</p>
+<p>有机会通过使用<code>suppressKotlinVersionCompatibilityCheck</code>编译器参数来绕过这个检查，但这是我们自己承担的风险，因为这样我们就可以使用任何版本的Kotlin运行Compose，这很容易导致严重的不一致。如果我们考虑Kotlin编译器后端在最新Kotlin版本中的发展，就会发现更多不一致。添加这个参数可能是为了允许针对实验性的Kotlin发行版等运行和测试Compose。</p>
+<h3 id="静态分析"><a href="#静态分析" class="headerlink" title="静态分析"></a>静态分析</h3><p>遵循一个普通编译器插件的标准行为，首先发生的是<strong>linting</strong>。静态分析是通过扫描源代码，搜索库注解，然后执行一些重要的检查，以确保它们被正确的使用。我说的正确是指runtime期望的方式。在这里，通过编译器插件可以访问的上下文跟踪报告相关的警告或错误。这与<strong>idea</strong>集成得很好，因为它已经准备好在开发人员仍在输入时内联显示这些警告或错误。如前所述，所有这些验证都发生在编译器的<strong>前端</strong>阶段，这有助于Compose为开发者提供尽可能快的反馈循环</p>
+<p>让我们来看看执行的一些最重要的静态检查。</p>
+<h3 id="静态检查"><a href="#静态检查" class="headerlink" title="静态检查"></a>静态检查</h3><p>一些注册的扩展以静态检查器的形式出现，它们将指导开发人员进行编码。Jetpack Compose 通过扩展注册调用、类型和声明的检查器。它们将确保库的正确使用，显然会对该库想要解决的问题持有主观看法。</p>
+<p>在Kotlin编译器的世界中，根据我们想要检查的元素，有不同类型的分析程序可用。有用于类实例化、类型、函数调用、弃用调用、契约、闭包捕获、中缀调用、协程调用、操作符调用等的检查器，这些检查器允许编译器插件分析来自输入源的所有相应元素，并在需要时报告信息、警告或错误。</p>
+<p>考虑到所有已注册的检查器都运行在Kotlin编译器的前端阶段，因此它们的速度应该非常快，并且不包含消耗大量cpu的操作。这是开发人员的责任，所以要始终记住，这些检查将在开发人员输入时运行，我们不想创建一个糟糕的用户体验是关键。我们希望实现轻量级检查器。</p>
+<h3 id="调用检查"><a href="#调用检查" class="headerlink" title="调用检查"></a>调用检查</h3><p>Compose 中注册的不同类型的检查器之一是用于验证调用的检查器。Compose 编译器已经设置了静态调用检查，用于在许多不同的上下文中验证组合函数调用，比如像<code>@DisallowComposableCalls</code>或 <code>@ReadOnlyComposable</code>范围内调用组合函数时做的那样。</p>
+<p>Call checker是一个编译器扩展，用于对代码库中的所有调用执行静态分析，因此它提供了一个递归调用的检查函数，用于访问源码中被视为调用的所有PSI元素。或者换句话说：PSI树上的所有节点。它是基于访问者模式的实现。</p>
+<p>其中一些检查需要比它们正在访问的当前语言元素更广泛的上下文，因为它们可能需要知道从哪里调用Composable。这意味着分析单个PSI节点是不够的。收集这样的信息需要从访问过的不同元素中记录更小的信息，并在进一步的检查中执行更复杂的验证。为此，编译器可以方便地在上下文跟踪中记录该信息。这可以扩大检查的范围，并能够查找包含的 lambda 表达式、try&#x2F;catch 块或类似的相关事物。</p>
+<p>以下是一个编译器调用的例子，它记录与上下文相关的信息到跟踪信息中，并使用它在标有<code>@DisallowComposableCalls</code>的上下文中调用Composable时报告错误。</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/5a51cf51f7c30411cfd914730fd60bec.png" alt="在这里插入图片描述"></p>
+<blockquote>
+<p>上下文和上下文跟踪在每次调用check函数时都可用，实际上，我们也可以使用相同的跟踪来报告错误、警告或信息消息。我们可以将跟踪理解为一个可变的结构，我们可以填充相关信息以进行整体分析。</p>
+</blockquote>
+<p>其他检查则更简单，只需要当前访问的元素可用的信息，所以它们执行其操作并返回。在每次检查调用时，插件将匹配当前节点的元素类型，并根据其进行简单的检查并返回（如果一切正确），报告错误 （如果需要）， 记录相关信息到上下文跟踪中，或者再次递归到该节点的父级，以继续访问更多节点并收集更多信息。沿途执行不同注解的不同检查。</p>
+<p>Compose编译器检查的一件事是，Composables不会从不被允许的地方调用，比如在<code>try/catch</code>块中调用(不支持)，从未标记为<code>@Composable</code>的函数中调用，或者从带有<code>@DisallowComposableCalls</code>注解的lambdas中调用。 请记住，该注解是用于避免在内联lambda中使用Composable注解的。</p>
+<p>对于每个可组合调用，编译器都会访问PSI树，检查它的调用者、它的调用者的调用者，等等，以确认这个调用的所有需求都得到了满足。所有场景都要考虑在内，因为父元素可以是lambda表达式、函数、属性、属性访问器、try&#x2F;catch块、类、文件等等。</p>
+<blockquote>
+<p>PSI为前端编译器阶段建模了语言的结构，因此我们必须记住，它理解代码的方式完全是语法的和静态的。</p>
+</blockquote>
+<p>对于这些检查来说，考虑内联函数也很重要，因为<strong>只要内联 lambda 的调用者也是可组合的，就必须允许从内联 lambda 中调用可组合函数</strong>。编译器会检查调用Composable函数的任何内联lambdas是否也在调用堆栈的某个级别上被一个Composable函数包围。</p>
+<p>另一个调用检查是在需要或预期的地方检测可能缺少Composable注解的情况，因此它可以方便地要求开发人员添加这些注解。 eg：如果在lambda中调用了一个Composable函数，编译器会友好地建议将Composable注解也添加到该lambda中。静态分析检查的存在是为了指导开发人员编写代码，所以它并不是完全禁止，有时它们可以推断和建议需要什么，或者告诉我们如何改进代码。</p>
+<p>对于注解为<code>@ReadOnlyComposable</code>的可组合函数，也有静态调用检查。它们只能调用其他的只读组合对象，否则我们就违反了优化的约定，只读组合对象只能从组合对象中读取，而不能写入组合对象。考虑到这必须在可组合的所有深度级别上实现，因此访问者模式会很有用。</p>
+<p>我们可以找到的另一个检查是禁止使用 Composable 函数引用，因为目前 Jetpack Compose 还不支持。</p>
+<h3 id="类型检查"><a href="#类型检查" class="headerlink" title="类型检查"></a>类型检查</h3><p>有时我们会将类型注解为<code>Composable</code>，而不仅仅是函数。为此，Compose编译器有一个与类型推断相关的检查，因此当期望使用<code>@Composable</code>注解的类型，但发现了非注解的类型时，它就会报告错误。类似于上面提到的函数调用检查。该错误将打印推断出的类型和期望的类型以及它们的注解，以更清晰地表明区别。</p>
+<h3 id="声明检查"><a href="#声明检查" class="headerlink" title="声明检查"></a>声明检查</h3><p>调用和类型的检查是必要的，但并不足够。声明检查也是任何Compose代码库的一部分。例如，属性、属性访问器、函数声明或函数参数需要进行分析。</p>
+<p>属性、属性 getter 和函数可以被重写，即使它们被注解为 Composable。任何这些 KtElement 的重写都会被 Compose 编译器检查是否也被注解为 Composable，以保持一致性。</p>
+<p>另一个可用的声明检查是确保 Composable 函数不是 <code>suspend</code> 的，因为不支持 <code>suspend</code>。 <code>suspend</code> 有不同于 <code>@Composable</code> 的含义，即使两者都可以被视为某种语言原语，但它们被设计用于表示完全不同的东西。到目前为止，这两个概念还不能同时得到支持。</p>
+<p>通过声明检查，像 Composable 注解的main函数或者 Composable 注解的属性的 backing fields 这样的东西也是被禁止的。</p>
+<h3 id="诊断抑制"><a href="#诊断抑制" class="headerlink" title="诊断抑制"></a>诊断抑制</h3><p>编译器插件可以将诊断抑制器注册为扩展，以便它们可以基本上消除一些特定情况下的诊断。例如：静态检查通知的错误。这通常发生在编译器插件生成或支持Kotlin编译器不接受的代码时，这样编译器就可以绕过相应的检查并使其正常工作。</p>
+<p>Compose 注册了一个 <code>ComposeDiagnosticSuppressor</code>，用于绕过一些语言限制（否则会导致编译失败），从而释放一些特定的用例。</p>
+<p>其中之一的限制是关于在调用点上使用“<strong>非源代码注解</strong>”注解的内联 lambda。即使用保留 <code>BINARY</code> 或 <code>RUNTIME</code> 的注解。这些注解会一直存在直到输出二进制文件，不像<code>SOURCE</code>注解那样。由于内联 lambda 在编译时会被实际内联到其调用者中，它们不会被存储在任何地方，因此在那一点上将不再有任何需要注解的内容。这就是为什么 Kotlin 禁止这样做，并报告以下错误：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">The lambda expression here <span class="keyword">is</span> an inlined argument so <span class="keyword">this</span> <span class="keyword">annotation</span> cannot be stored anywhere.</span><br><span class="line">（这里的lambda表达式是一个内联参数，因此这个注解不能存储在任何地方。）</span><br></pre></td></tr></table></figure>
+
+<p>下面是会触发该错误的示例代码：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/6fbe5713b20c886acda1656a5bc74708.png" alt="在这里插入图片描述"><br>Compose编译器只会对使用<code>@Composable</code>注解的情况抑制此检查，这样我们就可以编写以下类似的代码：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/7dedd280bbac0cd05b176c2c6ac7cf92.png" alt="在这里插入图片描述"></p>
+<p>这样我们就可以在调用函数时将 <code>lambda</code> 参数标注为 <code>@Composable</code>，而不一定非要在函数声明时这么做。这使得该函数具有更灵活的契约。</p>
+<p>使用 suppressor 时，可以绕过另一个与 Kotlin 语言限制相关的限制，即在 Kotlin 编译器不支持的地方允许使用命名参数，但仅当它们所属的函数被注解为 <code>@Composable</code> 时。</p>
+<p>函数类型就是一个例子。Kotlin不允许在函数类型上使用命名参数，但如果该函数被注解为 <code>@Composable</code>，则Compose会使其成为可能：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/acd07c39adf821ca9ae19d15361e17ea.png" alt="在这里插入图片描述"></p>
+<p>如果我们移除<code>@Composable</code>注解，我们会得到一个类似这样的错误:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Named arguments are not allowed <span class="keyword">for</span> function types.</span><br></pre></td></tr></table></figure>
+
+<p>相同的要求也适用于其他情况，例如预期类的成员。请记住，Jetpack Compose旨在成为多平台的，因此运行时应当明确地接受被标记为<code>@Composable</code>的<code>expect</code>函数和属性。</p>
+<h3 id="runtime-版本检查"><a href="#runtime-版本检查" class="headerlink" title="runtime 版本检查"></a>runtime 版本检查</h3><p>在代码生成之前，我们已经安装好了所有的静态检查器和诊断抑制器。接下来要进行的第一件事是检查使用的 Compose runtime 版本。Compose 编译器需要 runtime 的最低版本，因此它会进行检查，确保 runtime 没有过时。它可以检测到 runtime 缺失和过时的情况。</p>
+<p>一个 Compose 编译器版本可以支持多个运行时版本，只要它们高于所支持的最小版本。</p>
+<p>这是第二次版本检查。第一次是针对 Kotlin 编译器的版本的检查，然后第二次才是针对 Jetpack Compose runtime的版本的检查。</p>
+<h3 id="代码生成"><a href="#代码生成" class="headerlink" title="代码生成"></a>代码生成</h3><p>最后，编译器将进入代码生成阶段。这是注解处理器和编译器插件的另一个共同特点，因为两者都经常用于合成便于我们的runtime库使用的代码。</p>
+<h3 id="Kotlin-IR"><a href="#Kotlin-IR" class="headerlink" title="Kotlin IR"></a>Kotlin IR</h3><p>正如前面所解释的，编译器插件不仅可以生成新代码，而且可以修改源代码，因为它们可以访问语言的中间表示形式（IR），在生成目标平台的最终代码之前进行修改。这意味着编译器插件可以替换参数、添加新参数、重构代码结构，然后再“提交”它。这一过程发生在 Kotlin 编译器的后端阶段。很可能你已经猜到了，这正是 Compose 为每个 Composable 调用 “注入” 隐式额外参数 <code>Composer</code> 所做的事情。</p>
+<p>编译器插件可以以不同的格式生成代码。如果我们只针对 JVM，可以考虑生成兼容 Java 字节码，但随着 Kotlin 团队最新的计划和重构向着将所有 IR 后端稳定化并将其规范化为所有平台的单个后端的方向发展，更有意义的是生成 IR。请记住，IR 作为语言元素的表示形式，它是与目标平台无关的“中间表示”。这意味着生成 IR 将使 Jetpack Compose 生成的代码多平台化。</p>
+<p>Compose编译器插件通过注册<code>IrGenerationExtension</code>的实现来生成IR。<code>IrGenerationExtension</code>是由Kotlin编译器提供的扩展，用于生成通用IR后端。</p>
+<blockquote>
+<p>如果您想深入学习 Kotlin IR，推荐查看 <a target="_blank" rel="noopener" href="https://blog.bnorm.dev/writing-your-second-compiler-plugin-part-2">Brian Norman 的这个系列视频</a>，它涵盖了 Kotlin IR 和编译器插件创建主题的讲解。深入学习 IR 超出了本文的能力范围。</p>
+</blockquote>
+<h3 id="Lowering"><a href="#Lowering" class="headerlink" title="Lowering"></a>Lowering</h3><blockquote>
+<p>“Lowering”这个术语指的是编译器可以将更高级或更先进的编程概念转换为更低级和更基本的概念的翻译。在 Kotlin 中，这是非常常见的，因为 Kotlin 有一种语言的中间表示（IR），它能够表达非常先进的概念，然后需要将它们翻译为更低级别的基本概念，然后才能将它们转换为 JVM 字节码、Javascript、LLVM 的 IR 或其他平台的字节码。Kotlin 编译器有一个这样的过程。将高级概念转换为更低级概念也可以被理解为一种标准化的形式。</p>
+</blockquote>
+<p>Compose编译器需要将其支持的某些概念降低到运行时可以理解的表示形式。降低的过程是Compose编译器插件的实际代码生成阶段。在这个阶段，它会访问IR树中的所有元素，并根据运行时的需要随意调整IR。</p>
+<p>以下是接下来会介绍的在降低过程中发生的一些有意义的例子的简要总结概述:</p>
+<ul>
+<li>推断类的稳定性并添加必要的元数据以在运行时了解它。</li>
+<li>将实时文字表达式转换为访问可变状态实例，使得运行时可以反映源代码的更改而无需重新编译（实时文字特性）。</li>
+<li>封装Composable函数体，处理以下情况：<ul>
+<li>生成控制流的不同类型的组（可替换组，可移动组等）。</li>
+<li>实现默认参数支持，使它们可以在函数生成的组的作用域内执行，而不是依赖于Kotlin默认参数支持。</li>
+<li>将函数设计为可跳过重组。</li>
+<li>将与状态更改相关的信息向下传播到树中，以便在更改时自动进行重新组合。</li>
+</ul>
+</li>
+</ul>
+<p>接下来让我们学习Jetpack Compose编译器插件应用的各种降级方式。</p>
+<h3 id="类的稳定性推断"><a href="#类的稳定性推断" class="headerlink" title="类的稳定性推断"></a>类的稳定性推断</h3><p><strong>智能重组</strong>（<strong>smart recomposition</strong>）指的是当Composable函数的<strong>输入没有改变</strong>且这些输入被认为是<strong>稳定时</strong>，跳过重新组合。稳定性在这个意义上是一个非常重要的概念，因为它意味着Compose runtime可以安全地读取和比较这些输入，以在需要时跳过重新组合。稳定性的最终目标是帮助runtime。</p>
+<p>按照这种思路，让我们回顾一下一个稳定类型必须满足的属性：</p>
+<ul>
+<li><strong>相同的两个实例的 equals 调用始终返回相同的结果</strong>。这意味着比较是一致的，因此运行时可以依赖它。</li>
+<li><strong>当类型的公开属性更改时，总是会通知Composition组合</strong>。否则，我们可能会遇到输入与最新状态不同步的情况。为了确保不会发生这种情况，总是针对此类情况触发重新组合。智能重组合无法依赖此输入。</li>
+<li><strong>所有拥有基本数据类型的公开属性，或者拥有同样被视为稳定的类型的公开属性。</strong></li>
+</ul>
+<p>默认情况下，<strong>所有基本类型都是稳定的</strong>，<strong>String类型和所有函数类型也是稳定的</strong>。这是因为根据定义，它们是不可变的。因为不可变类型不会改变，所以它们也不需要通知组合。</p>
+<p>我们还了解到，有些类型不是不可变的，但可以被Compose假设为稳定的，它们可以用<code>@Stable</code> 进行注解。其中一个例子是<code>MutableState</code>，因为每当Compose改变时都会被通知，因此依赖它进行智能重组是安全的。</p>
+<p>对于我们在代码中创建的自定义类型，我们可以判断它们是否符合上面列出的属性，并方便地使用<code>@Immutable</code>或<code>@Stable</code>注解手动将它们标记为<strong>稳定类型</strong>。但依靠开发者履行契约是相当危险的，而且很难长期维持。相反，<strong>自动推断类的稳定性</strong>是可取的。</p>
+<p>Compose就是这样做的。推断稳定性的算法在不断进化，但它在沿着 <strong>访问每个类并为其合成一个名为<code>@stabilityinfer</code>的注解</strong> 的方向前进。它还添加了一个合成的 <code>static final int $stable</code> 值，用于编码类的相关稳定性信息。这个值将帮助编译器在后面的步骤中生成额外的机制，以确定类在运行时的稳定性，因此Compose可以确定依赖于这个类的Composable函数是否需要重新组合。</p>
+<p>为了推断一个类的稳定性，Compose考虑了不同的东西。<strong>当类的所有字段都是只读且稳定时，类型被推断为稳定</strong>。将<code>field</code>引用为所产生的JVM字节码。像 <code>class Foo</code> 或 <code>class Foo(val value: Int)</code> 这样的类将被推断为稳定的，因为它们没有字段或只有稳定字段。然后像 <code>class Foo(var value: Int)</code> 这种将被推断为不稳定的。</p>
+<p>但是类的<strong>泛型类型</strong>参数也可能影响类的稳定性，例如:</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/40e819fb0eced848962bfdf5e49cff2e.png" alt="在这里插入图片描述"></p>
+<p>在这种情况下，<strong>T</strong> 被用于类的参数之一，因此 <code>Foo</code> 的稳定性将依赖于传递给 <strong>T</strong> 的类型的稳定性。但鉴于<strong>T</strong> 不是具象化的类型，它在运行时之前都是未知的。因此，一旦已知传递给 <strong>T</strong> 的类型，就需要存在某种机制来确定类在运行时的稳定性。为了解决这个问题，Compose编译器计算并在<code>StabilityInferred</code> 注解中放入一个位掩码(bitmask)，该注解表示<strong>在运行时计算该类的稳定性应该依赖于其绑定的类型参数的稳定性</strong>。</p>
+<p>但是拥有<strong>泛型类型</strong>并不一定意味着不稳定。编译器知道，例如像：<code>class Foo&lt;T&gt;(val a: Int, b: T) &#123;val c: Int = b.hashCode()&#125;</code> 这样的代码是稳定的，因为<code>hashCode</code>总是为同一个实例返回相同的结果。这是契约的一部分。</p>
+<p>对于由其他类组成的类，如 <code>class Foo(val bar: Bar, val bazz: Bazz)</code>，稳定性被推断为所有参数稳定性的组合。这种情况会通过<strong>递归</strong>来解决。</p>
+<p>像<strong>内部可变状态</strong>这样的东西也会使类不稳定。其中一个例子如下:</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/4f75b17427e7ddce64e4c9d5c4517188.png" alt="在这里插入图片描述"><br>这种状态会随着时间的推移发生变化，即使它是由类本身在内部发生变化。这意味着运行时并不能真正的相信它会总是保持一致不变的。</p>
+<p>总的来说，<strong>Compose编译器只有在能够证明一个类型是稳定的时候才会考虑它</strong>。例如：<strong>一个接口被认为是不稳定的，因为Compose不知道它将如何实现</strong>。</p>
+<p>再来看一个示例代码：<br><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/38e1bf6ce9e7ca12b67d8cb83596524b.png" alt="在这里插入图片描述"><br>在这个例子中，我们得到一个<code>List</code>作为参数，它能以可变的方式实现（它可以是<code>List</code>也可以是<code>MutableList</code>实现）。对编译器来说，如果假设我们只会使用不可变的List来实现它，这是非常不安全不靠谱的。这种情况下推断会变得及其困难，所以它会直接假设它是<strong>不稳定</strong>的。</p>
+<p>另一个例子是具有可变公共属性的类型，其实现可以是不可变的。这些默认情况下也被认为是不稳定的，因为编译器不能推断那么多。</p>
+<p>这有点让人困惑，因为很多时候这些东西可以被实现为不可变的，对于 Compose runtime 来说，这应该足够了。因此，如果我们输入到可组合函数的模型被 Compose 编译器认为是不稳定的，我们仍然可以显式地将它标记为<code>@Stable</code>，这表示你在拍着胸脯告诉 Compose ：你把心放肚子里，出了事情我兜着。官方文档给出了如何这样做的一个例子：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/2e561bcca6b1c318b95e21bcc043cf70.png" alt="在这里插入图片描述"></p>
+<p>类稳定性推断算法涵盖了更多的情况。如果需要了解对于这个特性所涵盖的所有情况，建议阅读<a target="_blank" rel="noopener" href="https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/compiler/compiler-hosted/integration-tests/src/test/java/androidx/compose/compiler/plugins/kotlin/ClassStabilityTransformTests.kt">ClassStabilityTransform的库测试</a>。</p>
+<blockquote>
+<p>请记住，编译器如何推断稳定性的内部算法实现可能会随着时间的推移而变化和改进。好的一点是它对库的使用者始终是透明的。</p>
+</blockquote>
+<h3 id="启用实时字面量"><a href="#启用实时字面量" class="headerlink" title="启用实时字面量"></a>启用实时字面量</h3><p>我们可以传递给编译器的标志之一是实时字面量。随着时间的推移，这个特性已经有了两个实现， <code>liveLiterals(v1)</code> 或 <code>liveLiteralsEnabled (v2)</code> ，所以你可以选择启用其中一个标志。</p>
+<p>实时字面量是一个允许 Compose 工具能够在预览中实时反映变化，而不需要重新编译的功能特性。合成编译器所做的是将这些表达式替换为从MutableState中读取其值的新版本。这允许运行时立即收到更改通知，而不需要重新编译项目。正如库kdocs所揭露的:</p>
+<p>Compose 编译器所做的是将这些表达式替换为从 <code>MutableState</code> 中读取其值的新版本。这允许 runtime 立即收到更改通知，而不需要重新编译项目。正如官方文档中所描述的:<br><em>“This transformation is intended to improve developer experience and should never be enabled in a release build as it will significantly slow down performance-conscious code.”<br>（ 这种转换旨在改善开发人员的体验，永远不应该在发布版本中启用，因为它会显著降低注重性能的代码的速度。）</em></p>
+<p>Compose编译器将为我们代码库中的每个<strong>常量表达式</strong>生成唯一的<code>id</code>，然后它将所有这些常量转换为属性<code>getter</code>，从每个文件中持有的某个<code>MutableState</code>读取到生成的单个类。在运行时，有一些api可以使用生成的<code>key</code>获取这些常量的值。</p>
+<p>下面是一个从官方文档中提取的示例：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/13a19ebec3e90b00cd27676edcf7ff00.png" alt="在这里插入图片描述"><br>它会被转换成下面这样：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/d8768736d6956105bbec679e0f450f28.png" alt="在这里插入图片描述"><br>我们可以看到常量是如何被<code>getter</code>替换的，<code>getter</code>从<code>MutableState</code>读取到相应文件生成的单例中。</p>
+<h3 id="Compose-lambda-记忆"><a href="#Compose-lambda-记忆" class="headerlink" title="Compose lambda 记忆"></a>Compose lambda 记忆</h3><p>这一步骤生成方便的IR，以教导runtime如何优化传递给可组合函数的lambda函数的执行。这项工作是针对两种类型的 lambda 完成的：</p>
+<ul>
+<li><strong>非 Composable 类型的 lambdas ：</strong> 编译器通过将每个lambda包装到一个 <code>remember</code> 调用中来生成记忆化所需的IR。可以想象一下我们传递给可组合函数的回调。 <code>remember</code> 允许稍后调用 <code>slot table</code> 来存储和读取这些 lambda 函数。</li>
+<li><strong>Composable 类型的 lambdas ：</strong> 编译器生成的IR会将它们包装起来，并添加相关信息，以便教导runtime如何将表达式存储到Composition中并从其中读取。这与使用 <code>remember</code> 的最终目标相同，但并不使用它。一个常见的例子是，我们会向 Compose UI 节点中传递 Composable 类型的 <code>content</code> lambdas 。</li>
+</ul>
+<h4 id="非-Composable-类型的-lambdas"><a href="#非-Composable-类型的-lambdas" class="headerlink" title="非 Composable 类型的 lambdas"></a>非 Composable 类型的 lambdas</h4><p>此操作优化传递给可组合函数的lambda调用，使它们可以被重用。<strong>当 lambda 不捕获任何值时</strong>，Kotlin 已经通过将其建模为<strong>单例</strong>来优化了它们，因此整个程序只有一个可重用实例。但是，<strong>当 lambda 捕获值时</strong>，这种优化就不可能了，因为这些值可能<strong>每次调用都不同</strong>，因此<strong>每个 lambda 需要不同的实例</strong>。<strong>对于后者这种特定情况，Compose 更加智能</strong>。让我们通过一个例子来探讨这一点。</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/b59c698f4b516ff1597b8bef4825485b.png" alt="在这里插入图片描述"><br>这里，<code>onClick</code> 是一个标准的 Kotlin lambda，传递给了一个可组合函数。如果我们从调用处传递给它的 lambda 捕获了任何值，Compose 有能力教导 runtime 如何记忆它。基本上，这意味着将其包装成一个 <code>remember</code> 调用。这是通过生成的 IR 完成的。只要<strong>这些值是稳定的</strong>，此调用就会基于它们捕获的 lambda 表达式进行记忆。这使得 runtime 可以重用已经存在的 lambda，而不是创建新的 lambda，只要它们捕获的值匹配（包括输入参数）。</p>
+<blockquote>
+<p>要求捕获的值<strong>稳定</strong>的原因是，它们将用作 <code>remember</code> 调用的条件参数，因此它们必须是能用于比较的可靠的值。  </p>
+<p>请注意，<strong>记忆化的 lambda 不能是内联的</strong>，因为否则在编译时，它们在调用者处内联之后就没有什么可以记忆的了。</p>
+</blockquote>
+<p>此优化仅适用于捕获值的 lambda。如果它们不捕获任何值，Kotlin 的默认优化——将其表示为单例——就足够了。</p>
+<p>如上所述，记忆化是基于 lambda 捕获的值完成的。在为表达式生成 IR 时，编译器将在返回类型匹配记忆表达式类型的 <code>remember</code> 调用之前添加一个调用，并将泛型类型参数添加到 <code>remember&lt;T&gt;...</code> 调用中，以匹配表达式返回类型。接着，它将添加所有被 lambda 捕获的值作为条件参数：<code>remember&lt;T&gt;(arg1, arg2...)</code>，以便于比较，最后，将添加表达式的 lambda：<code>remember&lt;T&gt;(arg1, arg2..., expression)</code> 作为尾随 lambda。</p>
+<p>使用捕获的值作为条件参数将确保它们被用作记忆表达式结果的 <code>key</code>，因此每当它们变化时都将被无效化。</p>
+<p>传递给 Composable 函数的 <strong>自动记忆化的 lambdas</strong>，解锁了在重组（recomposition）发生时可以<strong>重用 lambdas</strong> 的能力。</p>
+<h4 id="Composable-类型的-lambdas"><a href="#Composable-类型的-lambdas" class="headerlink" title="Composable 类型的 lambdas"></a>Composable 类型的 lambdas</h4><p>Compose 编译器还能够记忆 Composable lambdas。鉴于 Composable lambdas 的“特殊”实现方式，实现细节可能略有不同。但最终目标是相同的：<strong>将这些 lambdas 存储到 <code>slot table</code> 中并读取它们。</strong></p>
+<p>下面是一个可以被记忆的 Composable lambda 的示例：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/8bf10e7f405a146fda9b8ae5489110ba.png" alt="在这里插入图片描述"></p>
+<p>为此，lambda 表达式的 IR 被调整。</p>
+<p>首先会调用一个带有特定参数的 <strong>composable 工厂函数</strong>：<code>composableLambda(...)</code>。</p>
+<p>第一个添加的参数将是当前的 <code>$composer</code>，因此它会按预期进行转发。即 <code>composableLambda($composer, ...)</code>。</p>
+<p>然后，它会添加一个<code>key</code>参数，该参数通过从 Composable lambda 的<strong>完全限定名称</strong>的<code>hashcode</code> 以及<strong>表达式起始偏移量</strong>（也就是它在文件中的位置）的组合获得，以确保<code>key</code>是唯一的。即 <strong>位置记忆</strong> 。此时生成的IR调用将变成：<code>composableLambda($composer, $key, ...)</code>.</p>
+<p>然后会添加一个名为 <code>shouldBeTracked</code> 的布尔型参数，该参数用于确定该 Composable lambda 调用是否需要被追踪。当 lambda 没有捕获值时，Kotlin 将其转换为<strong>单例实例</strong>，因为它们永远不会改变。这也意味着它们不需要被 Compose 追踪。因此，<code>shouldBeTracked</code> 参数的值可能为 <code>false</code>。然后生成的IR调用会变成：<code>composableLambda($composer, $key, $shouldBeTracked, ...)</code>。</p>
+<p>之后可以添加一个关于<strong>表达式参数个数</strong>的可选参数（<code>arity</code>），只有在参数个数超过<strong>22个</strong>时（神奇数字），才需要使用这个参数。此时生成的IR调用会变成：<code>composableLambda($composer, $key, $shouldBeTracked, $arity, ...)</code>。</p>
+<p>最后，它将 lambda 表达式<strong>本身</strong>作为包装器的最后一个参数添加（即将block代码块作为尾随lambda）。最终生成的IR调用会变成：<code>composableLambda($composer, $key, $shouldBeTracked, $arity, expression)</code> 。</p>
+<p>Composable 工厂函数的目的很简单：<strong>添加一个可替换的<code>group</code>组到组合中，以便使用生成的<code>key</code>来存储 lambda 表达式</strong>。这就是 Compose 如何告诉 runtime 存储和检索 Composable 表达式的。</p>
+<p>Compose 还可以对不捕获值的 Composable lambdas 进行优化，与 Kotlin 使用单例的方式相同：通过<strong>使用单例表示这些 lambda</strong>。为此，它为每个文件生成一个合成的内部对象 “<code>internal object ComposableSingletons</code>” ，而 Composable lambdas 就被保存在其中。该对象将保留或者说记忆对这些 Composable lambdas 的<strong>静态引用</strong>、以及<code>getter</code>，以便稍后检索它们。</p>
+<p>Composable lambdas 有最终的优化，实现方式类似于 <code>MutableState</code>。我们可以把 <code>@Composable (A, B) -&gt; C</code> 的 Composable lambda 看作 <code>State&lt; @Composable (A, B) -&gt; C &gt;</code> 来等价实现。在调用 lambda 的地方 <code>(lambda(a, b))</code> 就可以被等价替换成 <code>lambda.value.invoke(a, b)</code>。</p>
+<p>这是一种优化。它为所有 Composable lambda 创建了一个快照状态对象，使 Compose 能够更智能地基于 lambda 的变化重组子层次结构。这最初被称为 “donut-hole skipping”（跳过甜甜圈空心），因为它允许更新树的“高”部分的 lambda，而 Compose 只需要在实际读取此值的树的“低”部分重新组合。这最终成为了特定的 lambda 的良好权衡，因为它们的自然使用会导致实例被频繁传递，而且通常传递到较“低”层次的结构中，而从未实际“读取”它们的值（调用它们）。</p>
+<h3 id="Composer-注入"><a href="#Composer-注入" class="headerlink" title="Composer 注入"></a>Composer 注入</h3><p>在这个步骤中，Compose编译器将所有Composable函数替换为新版本，并添加一个额外的<code>Composer</code>合成参数。该参数也会被转发到代码中的每个Composable调用中，以确保它始终在树的任何位置可用。这还包括对Composable lambdas的调用。</p>
+<p>这还需要一些类型重映射的工作，因为当编译器插件添加额外参数时，函数类型也会发生变化。</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/cac17e3244347f57f3e255eb2b5dcb54.png" alt="在这里插入图片描述"></p>
+<p>这个步骤使得<code>Composer</code>对于任何子树可用，为具体化可组合树并保持其更新提供了所需的所有信息。</p>
+<p>这里有一个例子。<br><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/1babd8057baf791d677eee1bf3ff6a6a.png" alt="在这里插入图片描述"></p>
+<p>没有被标记为 <code>@Composable</code> 的内联 <code>lambda</code> 函数不会被转换，因为它们在调用者处被内联后会在编译时消失。同样，<code>expect</code> 函数也不会被转换。这些函数在类型解析时被解析为实际函数，这意味着后者在任何情况下都将被转换。</p>
+<h3 id="比较传播-Comparison-propagation"><a href="#比较传播-Comparison-propagation" class="headerlink" title="比较传播 (Comparison propagation)"></a>比较传播 (Comparison propagation)</h3><p>我们已经学习了编译器如何注入 <code>$composer</code> 额外参数并将其转发到所有 Composable 调用。除此之外，还有一些额外的元数据被生成并添加到了每个 Composable 中。其中之一就是 <code>$changed</code> 参数。该参数用于提供有关当前 Composable 的输入参数是否自上次组合以来发生了更改的线索。这将允许跳过重组的能力实现。</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/a9f0735c662b105267fb29a31eb43229.png" alt="在这里插入图片描述"></p>
+<p>这个参数是由代表每个函数输入参数的条件的比特位的组合合成的。每 <code>N</code> 个输入参数（大约是10个）会编码对应一个 <code>$changed</code> 参数，这受到使用的位数的限制。如果 Composable 函数恰好有更多的参数，就会添加<code>2</code>个或更多标志。使用比特位的原因是处理器天生擅长于此。</p>
+<p>携带这些信息可以让 runtime 进行某些特定的优化：</p>
+<ul>
+<li><p>当输入参数被确定为<strong>静态</strong>的时候，它可以跳过<code>equals</code>比较以检查输入参数是否与其最新存储的值不同。<code>$changed</code>参数的位掩码提供了这个信息。例如，如果输入参数是像上面代码片段中的<code>String</code>字面量，或者常量，或其他类似的。那么这个标志上的位将告诉 runtime 它的<strong>值在编译时已知</strong>，因此它在运行时永远不会改变，因此 runtime 可以<strong>避免比较</strong>它。</p>
+</li>
+<li><p>还有一些情况，参数的状态从上次组合以来永远不会发生变化，或者如果改变了，它的比较操作已经被树中的父Composable执行过了。这意味着不需要重新比较它。在这种情况下，参数的状态被认为是“<strong>确定的</strong>”。</p>
+</li>
+<li><p>对于其他任何情况，参数的状态被认为是“<strong>不确定的</strong>”，因此 runtime 可以直接进行比较（使用<code>equals</code>），并将其存储在 <code>slot table</code> 中，以便稍后始终可以找到最新的结果。这种情况下的比特值是 <code>0</code>，也就是默认情况。当 <code>$changed</code> 参数的值为 <code>0</code> 时，也就是在告诉 runtime 要做应该做的所有的工作（而不是采取任何捷径）。</p>
+</li>
+</ul>
+<p>这是注入了 <code>$changed</code> 参数并添加了处理逻辑后的 Composable 函数体示例：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/91b4d20d82b3972ba8161ec3b3fb837d.png" alt="在这里插入图片描述"></p>
+<p>这里有一些比较技术性的操作，但是我们可以简单解释一下这个 Composable 函数的结构。在函数内部，定义了一个本地变量 <code>$dirty</code> 来存储参数是否发生了变化。这个变量的值是通过比较 <code>$changed</code> 参数和之前储存在 <code>slot table</code> 中的值来决定的。如果该值被认为是“<strong>脏</strong>”的（即发生了变化），则会调用函数主体进行重新组合。否则，Composable 将跳过重新组合。</p>
+<p>由于重新组合可能会发生多次，携带关于输入状态如何演变的信息可以潜在地节省大量计算时间和空间。通常，参数通过许多可组合函数传递，Compose不希望每次都存储和比较它们，因为每次这样做都会占用<code>slot-table</code>空间。</p>
+<p>在调用者传递<code>$changed</code>参数给我们的可组合函数时也一样，这个可组合函数也有责任将它所拥有的有关任何参数的信息向下传递。这就是所谓的“<strong>比较传播</strong>”。在组合期间，我们在函数体中已经有了这些信息，因此如果我们已经知道某个输入参数发生了变化，或者是静态的或其他状态，我们可以将这些信息转发到任何子组合函数的<code>$changed</code>参数中，如果它刚好重用该参数的话。</p>
+<p><code>$changed</code>参数还编码了有关传递到函数中的参数的<strong>稳定性</strong>的信息。这使得接受更广泛类型（例如<code>List&lt;T&gt;</code>）的函数也能够做到跳过参数比较，如果基于输入参数的推断结果为稳定的话（例如<code>listOf(1, 2)</code>）。</p>
+<h3 id="默认参数"><a href="#默认参数" class="headerlink" title="默认参数"></a>默认参数</h3><p>在编译时，添加到每个 Composable 函数的另一个额外元数据是 <code>$default</code> 参数。</p>
+<p>Kotlin提供的默认参数支持对于Composable函数的参数并不可用，因为Composable函数需要在函数的范围内（生成的组）执行其参数的默认表达式。为此，Compose提供了默认参数解析机制的替代实现。</p>
+<p>Compose 使用 <code>$default</code> 位掩码参数来表示默认参数，将每个参数索引映射到掩码上的一位。类似于对 <code>$changed</code> 参数所做的操作。每 <code>N</code> 个具有默认值的输入参数对应一个 <code>$default</code> 参数。此位掩码提供有关调用站点是否提供了参数值的信息，以确定是否必须使用默认表达式。</p>
+<p>以下示例非常清楚地展示了一个 Composable 函数在注入 <code>$default</code> 位掩码之前和之后的样子，以及读取它并在需要时使用默认参数值的代码。</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/d8f0b3bdde287808a2623211a04990d1.png" alt="在这里插入图片描述"><br>这里再次进行了一些位运算操作，但是比较简单，只是检查 <code>$default</code> 位掩码，以判断使用默认值 <code>0</code> 还是使用保留传递的 <code>x</code> 值。</p>
+<h3 id="控制流Group的生成"><a href="#控制流Group的生成" class="headerlink" title="控制流Group的生成"></a>控制流Group的生成</h3><p>Compose编译器会在每个Composable函数的函数体中插入一个<code>group</code>。根据函数体中的控制流结构，可以生成不同类型的<code>group</code>组：</p>
+<ul>
+<li><strong>Replaceable groups（可替换的组）</strong></li>
+<li><strong>Movable groups（可移动的组）</strong></li>
+<li><strong>Restartable groups（可重启的组）</strong></li>
+</ul>
+<p>Composable函数最终在运行时发出组，这些组包含关于可组合调用当前状态的所有相关信息。这允许Composition知道如何在需要替换组(replaceable groups)时清除任何写入的数据，通过始终保留Composable的标识来移动数据(movable groups)，或者在重新组合期间重新启动函数(restartable groups)。</p>
+<p>最后，运行时需要知道如何根据Composition在内存中存储的信息来处理控制流。</p>
+<p>这些组还携带了在源码中调用的位置的相关信息。它们在源中包装一段文本，并使用调用的位置作为其因子之一来生成一个<code>key</code>，以便可以存储<code>group</code>并解锁位置记忆。</p>
+<h4 id="Replaceable-groups"><a href="#Replaceable-groups" class="headerlink" title="Replaceable groups"></a>Replaceable groups</h4><p>在前面我们已经知道了 Composable lambda 的代码块是通过调用 Composable 工厂函数来自动包装的，该函数工厂可以获得诸如<code>$composer</code>、生成的<code>$key</code>和实际的 <code>Composable lambda表达式</code> 等信息。</p>
+<p>下面是 Composable 工厂函数的代码实现：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/a48285c90af36930a024415b96667c25.png" alt="在这里插入图片描述"><br>这个工厂函数是为 Composable lambdas 调用的，就像用于我们的Composable函数的内容一样。如果我们仔细观察它，我们会注意到它首先用 <code>key</code> 启动一个可替换的组，并在结束时关闭组，将所有的文本跨度包装在中间。在开始和结束调用之间，它用相关信息来更新组合（也就是我们要包装的Composable lambda 表达式）。</p>
+<p>这是针对 Composable lambdas 的，但对于其他 Composable 调用也是如此。下面的示例中，展示了当一个普通的 Composable 函数被标记为不可重启时，它的代码是如何转换的：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/fd9163bdaabd3687139b7698c525bbc8.png" alt="在这里插入图片描述"><br>这里的Composable调用同样会发出一个可替换的组，该组将存储在Composition组合中。</p>
+<p>这些Group组就像一棵树。每个Group可以包含任意数量的子Group。如果对 <code>Wat</code> 的调用也是一个Composable，编译器也会为它插入一个组。</p>
+<p>前面我们提到过下面的例子，来展示所有的组都有一个源码位置的<code>key</code>，用于存储<code>group</code>，从而解锁位置记忆，这样 runtime 就可以将这两个<code>Text</code>的调用理解为是不同的调用：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/bdf876bf97a6ca94187a1c19757071df.png" alt="在这里插入图片描述"><br>拥有类似这样条件逻辑的 Composable 函数也会发出一个可替换的组，因此，它存储了一个组，可以在稍后条件切换时进行替换（根据key）。</p>
+<h4 id="Movable-groups"><a href="#Movable-groups" class="headerlink" title="Movable groups"></a>Movable groups</h4><p>Movable groups 是可以重新排序而不会失去标识的group。目前，这些分组仅在调用 <code>key</code> Composable 的函数体中使用。 下面回顾一个在前一篇中提到过的示例：<br><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/94735a8da40e8cf1fdd95c96249d5c1a.png" alt="在这里插入图片描述"><br>这个例子中将 <code>Talk</code> 组件包装到了 <code>key</code> Composable 中，这使它被赋予了一个唯一的标识符。当我们用 <code>key</code> Composable 来包装其他组件时，就会生成一个可移动的组。这样，即便在列表重排序之后，也不会丢失组件的唯一标识。</p>
+<p>这里有一个使用 key 的 Composable 如何被转换的例子：</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/864882c1aac33dbe1eea8a7cf51a928a.png" alt="在这里插入图片描述"></p>
+<h4 id="Restartable-groups"><a href="#Restartable-groups" class="headerlink" title="Restartable groups"></a>Restartable groups</h4><p>Restartable groups 可能是最有趣的一种。这些组仅用于可重启的 Composable 函数。它们也包装相应的 Composable 调用，但是在其顶部扩展了 end 调用，以便它返回一个可空值。当 Composable 调用的 body 不读取任何会发生变化的状态时，该值将为 <code>null</code>，因为此时永远都不需要重组。在这种情况下，就没有必要告知 runtime 如何重新组合这个 Composable。否则，如果它返回非空值，编译器将生成一个 lambda，以告知 runtime 如何 “重启”（重新执行）Composable，从而更新 Composition。</p>
+<p>可以通过下面代码来理解：<br><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/1e438c6962e376ae40a6108c10c5e80e.png" alt="在这里插入图片描述"><br>可以看到重组的更新范围包含了对同一 Composable 的新调用。</p>
+<p>所有读取 <code>state</code> 的 Composable 函数都会生成的这种 <code>group</code> 类型。</p>
+<p>在结束本节之前，我想补充一些编译器在生成不同类型的 <code>group</code> 时应用的额外推理。以下内容摘自官方文档：</p>
+<ul>
+<li>如果一个代码块始终只会被执行一次，那么不需要生成任何组。</li>
+<li>如果一组代码块中只有一个会被执行一次（例如 <code>if</code> 语句中的结果代码块或 <code>when</code> 语句中的分支代码块），那么我们会在每个代码块周围插入可替换的组。这样就构成了有条件的逻辑。</li>
+<li>可移动的组仅适用于 key 调用的 content lambda。</li>
+</ul>
+<h3 id="诱饵代码的生成"><a href="#诱饵代码的生成" class="headerlink" title="诱饵代码的生成"></a>诱饵代码的生成</h3><p>Compose 编译器针对<code>.klib</code>（多平台）和 <code>Kotlin / JS</code> 提供了特定的支持。这是由于IR在JS中反序列化的方式，因为一旦IR被转换，它将无法匹配类型签名。请记住，Compose为Composable函数声明和调用添加了额外的合成参数。因此需要这种支持。</p>
+<p>针对此问题，Compose避免在Kotlin&#x2F;JS中替换函数的IR（与JVM不同），而是创建副本。它将保留原始函数声明，以便在Kotlin元数据中的每个函数与其IR之间建立连接，并且代码中的所有引用仍然可以很好地解析，然后Compose将根据需要调整副本的IR。为了在运行时区分两者，将在名称后添加<code>$composable</code>后缀。</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/f9d6c69d3e8820b3013deaf56109b55a.png" alt="在这里插入图片描述"></p>
+<blockquote>
+<p>如果你想深入了解对<code>.klib</code>和<code>Kotlin/JS</code>的支持，建议你阅读<a target="_blank" rel="noopener" href="https://dev.to/shikasd/kotlin-compiler-plugins-and-binaries-on-multiplatform-139e">Andrei Shikov的这篇很棒的文章</a>。</p>
+</blockquote>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><p><strong>Compose编译器实际上是一个Kotlin编译器插件，它可以随意调整现有的源代码，修改它的输出 IR 。它根据 Compose runtime 的需要来转换 Composable 函数。</strong></p>
+</li>
+<li><p><strong><code>@Composable</code> 注解改变了函数或表达式的类型，获得“内存”表达能力，即可以调用 <code>remember</code> 及利用<code>Composer/slot table</code>的能力。被分配唯一标识，可以将Node节点发射到Composition组合树中。</strong></p>
+</li>
+<li><p><strong><code>@DisallowComposableCalls</code>注解用于注解一个内联lambda, 目的是为了禁止在lambda中调用Composable，比如 <code>remember</code> 函数中使用了它（因为它只执行一次）。</strong></p>
+</li>
+<li><p><strong><code>@ReadOnlyComposable</code>注解的Composable不会写入Composition，它生成的<code>group</code>不会提供任何值。</strong></p>
+</li>
+<li><p><strong><code>@StableMarker</code>是表示稳定性的元注解，它注解了 <code>@Immutable</code>和<code>@Stable</code>。利用这三个注解可以手动将一个类型标记为稳定类型。</strong></p>
+</li>
+<li><p><strong>一个稳定的类型必须满足以下要求：</strong></p>
+<ul>
+<li><p><strong>对于相同的两个实例，无论何时调用equals的结果总是相同的 。（现在相等就永远相等）</strong></p>
+</li>
+<li><p><strong>当被注解的类型的公开属性发生变化时，总是会通知其Composition。（<code>var</code>最好用<code>mutableStateOf()</code>包装）</strong></p>
+</li>
+<li><p><strong>被注解的类型的所有公开属性也必须是稳定的。</strong></p>
+<p>  <strong>这些是我们给编译器的承诺，但编译器在编译时不会验证它们。</strong></p>
+</li>
+</ul>
+</li>
+<li><p><strong><code>@Immutable</code>：承诺注解的类的所有公共可访问的类属性和字段在创建后保持不变。它比 <code>val</code> 的承诺更强，<code>val</code> 只确保属性不能通过setter重新分配，但却可以指向一个包含可变字段的数据结构。<br>  这个注解的最终目的是为了runtime可以对智能重组和跳过重组特性应用优化。</strong></p>
+</li>
+<li><p><strong><code>@Stable</code>：用于可变类型，但我们主观上任务它是不会改变的。它比<code>@Immutable</code>更宽松。</strong></p>
+</li>
+<li><p><strong>使用 <code>@Immutable</code> 和 <code>@Satble</code> 在目前来讲实际效果是一样的。使用它们都会开启和优化智能重组。但实际中应该谨慎使用它们，而是让编译器自动推断类的稳定性。</strong></p>
+</li>
+<li><p><strong>编译器扩展的调用检查中，考虑内联函数很重要，因为只要内联 lambda 的调用者也是可组合的，就必须允许从内联 lambda 中调用可组合函数。</strong><br>  <strong>编译器会禁止 Composable 函数的引用。 Composable 函数不支持 suspend 声明。也不支持属性的 backing fields上声明Composable。</strong></p>
+</li>
+<li><p><strong>智能重组（smart recomposition）指的是当Composable函数的输入没有改变且这些输入被认为是稳定时，跳过重新组合。</strong></p>
+</li>
+<li><p><strong>类的稳定性推断：Compose编译器会自动推断是否是稳定类型。默认情况下，所有基本类型都是稳定的，String类型和所有函数类型也是稳定的。当类的所有字段都是只读且稳定时，类型才被推断为稳定。</strong></p>
+</li>
+<li><p><strong>Compose lambda 记忆：</strong></p>
+<p>  <strong>非 Composable 类型的 lambdas ：</strong></p>
+<ul>
+<li><strong>对于捕获值的 lambda，编译器会将它包装到一个 remember 调用中来生成记忆化所需的IR。生成形如：<code>remember&lt;T&gt;(arg1, arg2..., expression)</code> 其中 <code>expression</code> 是被包装的真正的 lambda 。这些捕获的值必须是稳定的。</strong></li>
+<li><strong>对于不捕获任何值的 lambda，Compose 使用 Kotlin 的默认优化：将其表示为单例。</strong></li>
+</ul>
+<p>  <strong>Composable 类型的 lambdas ：</strong></p>
+<ul>
+<li><p><strong>编译器会调用<code>composable</code> 工厂函数修改IR将其包装起来，并添加相关信息，runtime 会将其存储到Composition的 <code>slot table</code> 中。最终生成的IR调用会变成：<code>composableLambda($composer, $key, $shouldBeTracked, $arity, expression) 。</code></strong></p>
+</li>
+<li><p><strong>对于不捕获值的 Composable lambdas 同样使用单例来表示.</strong></p>
+</li>
+</ul>
+</li>
+<li><p><strong>Composer 注入：Compose编译器将所有Composable函数替换为新版本，并添加一个额外的<code>$composer</code>合成参数。该参数也会被转发到代码中的每个Composable调用中，以确保它始终在树的任何位置可用。</strong></p>
+</li>
+<li><p><strong>比较传播：注入 <code>$changed</code> 参数，提供有关当前 Composable 的输入参数是否自上次组合以来是否发生了更改的信息。允许跳过重组的能力。它根据输入参数条件的比特位编码，每 N 个输入参数会编码对应一个 <code>$changed</code> 参数。</strong><br>  <strong>通过比较 <code>$changed</code> 参数和之前储存在 <code>slot table</code> 中的值来判断是否“脏”的，进而决定是重组还是跳过重组。调用者会将函数的参数信息会向下传播，即比较传播。</strong></p>
+</li>
+<li><p><strong>编译器会为每个 Composable 函数 注入 <code>$default</code> 参数来处理默认参数值，它与 <code>$changed</code> 参数编码类似。</strong></p>
+</li>
+<li><p><strong>Compose编译器会在每个Composable函数的函数体中插入一个 <code>group</code>， <code>Group</code>包含了 Composable 所有相关的状态信息（如源码位置的相关信息，生成<code>key</code>作为<code>Group</code>的标识，以解锁位置记忆）。Composable函数最终在运行时发出<code>Group</code>。每个<code>Group</code>可以包含任意数量的子<code>Group</code>。</strong></p>
+<p>  <strong><code>Group</code>的类型：</strong></p>
+<ul>
+<li><strong><code>Replaceable groups</code>（可替换的组）适用于<code>if\when</code>等条件分支的逻辑，以便在条件切换时实现Composable的替换。</strong></li>
+<li><strong><code>Movable groups</code>（可移动的组）可以重新排序而不会失去标识的<code>group</code>，仅适用于 <code>key(xxx)&#123;&#125;</code> 的调用场景。</strong></li>
+<li><strong><code>Restartable groups</code>（可重启的组）仅用于可重启的 Composable 函数。</strong></li>
+</ul>
+</li>
+<li><p><strong>诱饵代码：创建副本，保留原始函数声明，解决类型签名匹配问题。Compose调整的是副本的IR。（副本添加<code>$composable</code>后缀区分）</strong></p>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io">BravestSnail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io/2025/06/04/note/Android/compose/Compose%E6%B7%B1%E5%85%A5%E6%8E%A2%E7%B4%A2/Compose%20%E7%BC%96%E8%AF%91%E5%99%A8/">https://bravestsnail.github.io/2025/06/04/note/Android/compose/Compose%E6%B7%B1%E5%85%A5%E6%8E%A2%E7%B4%A2/Compose%20%E7%BC%96%E8%AF%91%E5%99%A8/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://bravestsnail.github.io" target="_blank">BravestSnail's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/06/04/note/Android/compose/Compose%E7%9A%84modifier/" title="Compose的modifier"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Compose的modifier</div></div><div class="info-2"><div class="info-item-1">Modifier的基本使用Modifier修饰符是Jetpack Compose中用来修饰组件的，提供常用的属性，写布局时几乎所有Composable组件的大部分属性都可以用Modifier 来修饰。官方在开发Compose UI时，最初尝试过将所有属性全部以函数参数的形式提供，但是那样太多了，他们也尝试过像Flutter那样的方式，将属性也作为一个组件进行嵌套，但这样又很容易让人感到困惑，所以才诞生了Modifier，将大部分组件常用属性封装成Modifier的形式来提供，哪个组件需要就在哪个组件上应用。我认为Modifier是Compose中最优秀的设计点之一。 1234567891011121314151617181920212223242526272829@Composablefun ModifierExample() &#123;    Box(modifier = Modifier.size(200.dp)) &#123; // size同时指定宽高大小        Box(Modifier.fillMaxSize()  // 填满父空间           ...</div></div></div></a><a class="pagination-related" href="/2025/06/04/note/Android/compose/Compose%E6%B7%B1%E5%85%A5%E6%8E%A2%E7%B4%A2/Compose%E4%B8%AD%E7%9A%84%E5%8A%A8%E6%80%81%E5%8A%A0%E8%BD%BD%E3%80%81%E6%8F%92%E4%BB%B6%E5%8C%96%E6%8A%80%E6%9C%AF%E6%8E%A2%E7%B4%A2/" title="Compose中的动态加载、插件化技术探索"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Compose中的动态加载、插件化技术探索</div></div><div class="info-2"><div class="info-item-1">在传统的 Android 开发模式中，由于界面过分依赖于 Activity、Fragment这样的组件，一个业务模块中往往会存在着大量的 Activity 类，因此诞生了很多的插件化框架，这些插件化框架基本都是想方设法的使用各种Hook&#x2F;反射手段来解决使用未注册的组件问题。在进入 Jetpack Compose 的世界以后，Activity 的角色被淡化了，由于一个 Composable 组件就可以承担一个屏幕级的显示，因此我们的应用中不再需要那么多的 Activity 类，只要你喜欢，你甚至可以打造一个单 Activity 的纯 Compose 应用。 本文主要尝试探索几种可以在 Jetpack Compose 中实施插件化&#x2F;动态加载的可行性方案。 以 Activity占坑的方式访问插件中的 Composable 组件这种方式其实传统 View 开发也可以做，但是由于 Compose 中我们可以只使用一个Activity，而其余页面均使用 Composable...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">78</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Kotlin%E7%BC%96%E8%AF%91%E5%99%A8%E6%8F%92%E4%BB%B6"><span class="toc-number">1.</span> <span class="toc-text">Kotlin编译器插件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Compose-%E6%B3%A8%E8%A7%A3"><span class="toc-number">2.</span> <span class="toc-text">Compose 注解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Composable"><span class="toc-number">2.1.</span> <span class="toc-text">@Composable</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ComposeCompilerApi"><span class="toc-number">2.2.</span> <span class="toc-text">@ComposeCompilerApi</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#InternalComposeApi"><span class="toc-number">2.3.</span> <span class="toc-text">@InternalComposeApi</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#DisallowComposableCalls"><span class="toc-number">2.4.</span> <span class="toc-text">@DisallowComposableCalls</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ReadOnlyComposable"><span class="toc-number">2.5.</span> <span class="toc-text">@ReadOnlyComposable</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#NonRestartableComposable"><span class="toc-number">2.6.</span> <span class="toc-text">@NonRestartableComposable</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#StableMarker"><span class="toc-number">2.7.</span> <span class="toc-text">@StableMarker</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Immutable"><span class="toc-number">2.8.</span> <span class="toc-text">@Immutable</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Stable"><span class="toc-number">2.9.</span> <span class="toc-text">@Stable</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E5%86%8C%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95"><span class="toc-number">3.</span> <span class="toc-text">注册编译器扩展</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Kotlin%E7%BC%96%E8%AF%91%E5%99%A8%E7%89%88%E6%9C%AC"><span class="toc-number">4.</span> <span class="toc-text">Kotlin编译器版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E5%88%86%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">静态分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9D%99%E6%80%81%E6%A3%80%E6%9F%A5"><span class="toc-number">6.</span> <span class="toc-text">静态检查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E6%A3%80%E6%9F%A5"><span class="toc-number">7.</span> <span class="toc-text">调用检查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B1%BB%E5%9E%8B%E6%A3%80%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">类型检查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A3%B0%E6%98%8E%E6%A3%80%E6%9F%A5"><span class="toc-number">9.</span> <span class="toc-text">声明检查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%8A%E6%96%AD%E6%8A%91%E5%88%B6"><span class="toc-number">10.</span> <span class="toc-text">诊断抑制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#runtime-%E7%89%88%E6%9C%AC%E6%A3%80%E6%9F%A5"><span class="toc-number">11.</span> <span class="toc-text">runtime 版本检查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90"><span class="toc-number">12.</span> <span class="toc-text">代码生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Kotlin-IR"><span class="toc-number">13.</span> <span class="toc-text">Kotlin IR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Lowering"><span class="toc-number">14.</span> <span class="toc-text">Lowering</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B1%BB%E7%9A%84%E7%A8%B3%E5%AE%9A%E6%80%A7%E6%8E%A8%E6%96%AD"><span class="toc-number">15.</span> <span class="toc-text">类的稳定性推断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E7%94%A8%E5%AE%9E%E6%97%B6%E5%AD%97%E9%9D%A2%E9%87%8F"><span class="toc-number">16.</span> <span class="toc-text">启用实时字面量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Compose-lambda-%E8%AE%B0%E5%BF%86"><span class="toc-number">17.</span> <span class="toc-text">Compose lambda 记忆</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9D%9E-Composable-%E7%B1%BB%E5%9E%8B%E7%9A%84-lambdas"><span class="toc-number">17.1.</span> <span class="toc-text">非 Composable 类型的 lambdas</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Composable-%E7%B1%BB%E5%9E%8B%E7%9A%84-lambdas"><span class="toc-number">17.2.</span> <span class="toc-text">Composable 类型的 lambdas</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Composer-%E6%B3%A8%E5%85%A5"><span class="toc-number">18.</span> <span class="toc-text">Composer 注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AF%94%E8%BE%83%E4%BC%A0%E6%92%AD-Comparison-propagation"><span class="toc-number">19.</span> <span class="toc-text">比较传播 (Comparison propagation)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%BB%98%E8%AE%A4%E5%8F%82%E6%95%B0"><span class="toc-number">20.</span> <span class="toc-text">默认参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E6%B5%81Group%E7%9A%84%E7%94%9F%E6%88%90"><span class="toc-number">21.</span> <span class="toc-text">控制流Group的生成</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Replaceable-groups"><span class="toc-number">21.1.</span> <span class="toc-text">Replaceable groups</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Movable-groups"><span class="toc-number">21.2.</span> <span class="toc-text">Movable groups</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Restartable-groups"><span class="toc-number">21.3.</span> <span class="toc-text">Restartable groups</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B1%E9%A5%B5%E4%BB%A3%E7%A0%81%E7%9A%84%E7%94%9F%E6%88%90"><span class="toc-number">22.</span> <span class="toc-text">诱饵代码的生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">23.</span> <span class="toc-text">总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

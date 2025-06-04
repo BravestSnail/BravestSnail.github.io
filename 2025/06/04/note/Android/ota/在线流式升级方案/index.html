@@ -1,0 +1,272 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>在线流式升级方案 | BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="流式升级需求背景：  9633项目过CTS，需要Data分区留足够大小，评估砍掉&#x2F;cache分区 现有data分区大小有限，用户下载东西多的时候，会导致OTA失败  需求：改为“在线流式升级”，客户端调用Android原生接口，传入http url，底层自动下载并升级 改前：下载占用cache分区约1G，升级过程还会占用data分区约1G，总共是2G 改后：删除cache分区，升级过程占">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在线流式升级方案">
+<meta property="og:url" content="https://bravestsnail.github.io/2025/06/04/note/Android/ota/%E5%9C%A8%E7%BA%BF%E6%B5%81%E5%BC%8F%E5%8D%87%E7%BA%A7%E6%96%B9%E6%A1%88/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:description" content="流式升级需求背景：  9633项目过CTS，需要Data分区留足够大小，评估砍掉&#x2F;cache分区 现有data分区大小有限，用户下载东西多的时候，会导致OTA失败  需求：改为“在线流式升级”，客户端调用Android原生接口，传入http url，底层自动下载并升级 改前：下载占用cache分区约1G，升级过程还会占用data分区约1G，总共是2G 改后：删除cache分区，升级过程占">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:published_time" content="2025-06-04T12:46:35.126Z">
+<meta property="article:modified_time" content="2025-06-04T12:46:35.126Z">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "在线流式升级方案",
+  "url": "https://bravestsnail.github.io/2025/06/04/note/Android/ota/%E5%9C%A8%E7%BA%BF%E6%B5%81%E5%BC%8F%E5%8D%87%E7%BA%A7%E6%96%B9%E6%A1%88/",
+  "image": "https://bravestsnail.github.io/images/avatar.png",
+  "datePublished": "2025-06-04T12:46:35.126Z",
+  "dateModified": "2025-06-04T12:46:35.126Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "BravestSnail",
+      "url": "https://bravestsnail.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/2025/06/04/note/Android/ota/%E5%9C%A8%E7%BA%BF%E6%B5%81%E5%BC%8F%E5%8D%87%E7%BA%A7%E6%96%B9%E6%A1%88/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '在线流式升级方案',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">在线流式升级方案</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">在线流式升级方案</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-04T12:46:35.126Z" title="更新于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="流式升级需求"><a href="#流式升级需求" class="headerlink" title="流式升级需求"></a>流式升级需求</h1><p>背景：</p>
+<ol>
+<li>9633项目过CTS，需要Data分区留足够大小，评估砍掉&#x2F;cache分区</li>
+<li>现有data分区大小有限，用户下载东西多的时候，会导致OTA失败</li>
+</ol>
+<p>需求：改为“在线流式升级”，客户端调用Android原生接口，传入http url，底层自动下载并升级</p>
+<p>改前：下载占用cache分区约1G，升级过程还会占用data分区约1G，总共是2G</p>
+<p>改后：删除cache分区，升级过程占用data分区约1G</p>
+<p>目的：节约本地存储，data分区留更多空间给用户，同时降低升级失败概率</p>
+<p>问题点：客户端需要拿到OTA包中的信息，如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">update_engine_client \</span><br><span class="line">--payload=file:///data/update.zip \</span><br><span class="line">--update --follow \</span><br><span class="line">--offset=5429 \</span><br><span class="line">--size=5221757 \</span><br><span class="line">--headers=&quot;\</span><br><span class="line">FILE_HASH=L5njR6Vz6nupQFNJauewjegNup/qMaHYdnlJ+mvmOsQ=</span><br><span class="line">FILE_SIZE=5221757</span><br><span class="line">METADATA_HASH=sanYeqQrW1Q0PbTDaMwyi8jicAAqY4UTwfmF0dm+aEE=</span><br><span class="line">METADATA_SIZE=99239</span><br></pre></td></tr></table></figure>
+
+<h2 id="方案1"><a href="#方案1" class="headerlink" title="方案1"></a>方案1</h2><p>编写脚本，解析OTA包，上传OTA包时，手动复制粘贴内容到策略描述字段（验证可以正常OTA）</p>
+<ul>
+<li>优点：后台无需改动，客户端添加策略描述解析逻辑</li>
+<li>缺点：手动复制粘贴，量大人多的时候容易出错，测试无法覆盖</li>
+</ul>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/%E7%AD%96%E7%95%A5%E6%8F%8F%E8%BF%B0%E5%AD%97%E6%AE%B5.png"></p>
+<h2 id="方案2"><a href="#方案2" class="headerlink" title="方案2"></a>方案2</h2><p>后台出方案，走定制需求，费用评估</p>
+<ol>
+<li>新加一个接口，客户端分2次请求，第1次请求返回策略和url，第二次请求返回OTA包数据</li>
+<li>复制原有接口逻辑，新加字段，客户端传入策略，后台一次返回，客户端需修改url地址</li>
+<li>后台评估：可能需要新开一个服务维护，没法在原来的OTA服务添加</li>
+</ol>
+<h2 id="方案3"><a href="#方案3" class="headerlink" title="方案3"></a>方案3</h2><p>后台接口新增字段，直接返回给客户端（上传OTA包时解析存储或下发策略时解析）</p>
+<ul>
+<li>优点：对OTA使用者无感知，原有流程不变</li>
+<li>缺点：可能存在字段不通用或OTA包格式不一样的情况，无法作为平台通用做法</li>
+</ul>
+<p>后台没法直接修改，需联动其他业务和技术栈负责人调研和push，标准化流式升级的需求，评估是否能作为平台通用功能</p>
+<h2 id="方案4"><a href="#方案4" class="headerlink" title="方案4"></a>方案4</h2><p>制作OTA包时生成元数据json文件，再单独开一个页面和接口上传</p>
+<p>缺点：对用户来说比较割裂，而且容易出错</p>
+<h1 id="其他信息"><a href="#其他信息" class="headerlink" title="其他信息"></a>其他信息</h1><p>大板端有开发过流式升级，但是是借助了PC模块的存储空间，不是在线流式升级，不需要OTA服务配合</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/%E5%A4%A7%E6%9D%BF%E6%B5%81%E5%BC%8F%E5%8D%87%E7%BA%A7.png"></p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/%E5%A4%A7%E6%9D%BF%E6%B5%81%E5%BC%8F%E5%8D%87%E7%BA%A72.png"></p>
+<p><a target="_blank" rel="noopener" href="https://source.android.google.cn/docs/core/ota/ab?hl=hr">Google文档</a></p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/GoogleAB%E5%8D%87%E7%BA%A7.png"></p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/Google%E6%B5%81%E5%BC%8F%E5%8D%87%E7%BA%A7.png"></p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/%E5%85%B3%E9%94%AE%E4%BB%A3%E7%A0%81%E6%B5%81%E7%A8%8B.png"></p>
+<h1 id="调研"><a href="#调研" class="headerlink" title="调研"></a>调研</h1><ol>
+<li>教育没有做OTA功能</li>
+<li>教育周边：Android 9的OTA包，使用recovery升级</li>
+<li>商显和海外：新方案支持AB升级，如T982</li>
+<li>TV AB升级<ol>
+<li>AN14以下均不支持（除给JIO定制的962 AN13之外）</li>
+<li><pre><code>AN14 950S、352不支持
+</code></pre>
+</li>
+<li>AN14 MTK9633、MTK9256、T963D4支持</li>
+</ol>
+</li>
+<li>Google GMS要求AN11以上强制支持</li>
+</ol>
+<h1 id="具体需求实现"><a href="#具体需求实现" class="headerlink" title="具体需求实现"></a>具体需求实现</h1><h2 id="参数字段"><a href="#参数字段" class="headerlink" title="参数字段"></a>参数字段</h2><p>见Android标准接口定义</p>
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/UpdateEngine%E6%96%B9%E6%B3%95.png"></p>
+<h2 id="OTA包解析"><a href="#OTA包解析" class="headerlink" title="OTA包解析"></a>OTA包解析</h2><p>参考Google标准实现：<a target="_blank" rel="noopener" href="https://cs.android.com/android/platform/superproject/main/+/main:packages/apps/Car/SystemUpdater/src/com/android/car/systemupdater/UpdateParser.java;l=36?q=UpdateParser&ss=android/platform/superproject/main">Google SystemUpdater代码实现</a></p>
+<p>见附件<a target="_blank" rel="noopener" href="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/UpdateParser.java" >UpdateParser.java</a>，后台可以直接接入，验证方式如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">javac UpdateParser.java</span><br><span class="line">java UpdateParser /path/to/ota_file.zip</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://markdown-1305107759.cos.ap-guangzhou.myqcloud.com/OTA%E5%8C%85%E8%A7%A3%E6%9E%90.png"></p>
+<p>参数字段定义和示例</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">	<span class="attr">&quot;URL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;file:///Users/Afauria/Desktop/OTA_CS000000_SK736S_PC822_A3_4K_DVBS_CIPLUS14_NON_GAIA_SATURN_BT_KATNISS_A_TEST_8GB_1P5GB_P_7KEY_REF56_9a4b9074_20241011_143238.zip&quot;</span><span class="punctuation">,</span></span><br><span class="line">	<span class="attr">&quot;offset&quot;</span><span class="punctuation">:</span> <span class="number">3184</span><span class="punctuation">,</span></span><br><span class="line">	<span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">987654130</span><span class="punctuation">,</span></span><br><span class="line">	<span class="attr">&quot;props&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;FILE_HASH=BeM5Bd51zDTUBnnqAEVhdFC6/rElQsW0KugKjquANj0=&quot;</span><span class="punctuation">,</span> <span class="string">&quot;FILE_SIZE=987654130&quot;</span><span class="punctuation">,</span> <span class="string">&quot;METADATA_HASH=HujVyjgHRqypAmnEJYh7T0eAI/r4wiaMe0tutC816JY=&quot;</span><span class="punctuation">,</span> <span class="string">&quot;METADATA_SIZE=75695&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io">BravestSnail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io/2025/06/04/note/Android/ota/%E5%9C%A8%E7%BA%BF%E6%B5%81%E5%BC%8F%E5%8D%87%E7%BA%A7%E6%96%B9%E6%A1%88/">https://bravestsnail.github.io/2025/06/04/note/Android/ota/%E5%9C%A8%E7%BA%BF%E6%B5%81%E5%BC%8F%E5%8D%87%E7%BA%A7%E6%96%B9%E6%A1%88/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://bravestsnail.github.io" target="_blank">BravestSnail's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/06/04/note/Android/ota/ota%E7%B1%BB%E5%9B%BE/" title="ota类图"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">ota类图</div></div><div class="info-2"><div class="info-item-1">classDiagram   class RomUpdateInfo {     + String versionCode     + String downloadUrl     + long fileSize     + String updateDesc     + boolean isForceUpdate     + boolean isSilentDownload }  BaseUpdateManager *-- UpgradeProcessorFactory  class IUpdateListener {     +void onCheckUpdateResult(int result, int otaType, RomUpdateInfo romUpdateInfo, boolean isSelfCheck)      +void onDownloadProgress(int progress, int otaType)      +void onDownloadSuccess(RomUpdateInfo romUpdateInfo, int otaType,...</div></div></div></a><a class="pagination-related" href="/2025/06/04/note/Android/ota/%E7%B3%BB%E7%BB%9F%E5%B1%9E%E6%80%A7%E4%BB%8B%E7%BB%8D/" title="系统属性介绍"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">系统属性介绍</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">78</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B5%81%E5%BC%8F%E5%8D%87%E7%BA%A7%E9%9C%80%E6%B1%82"><span class="toc-number">1.</span> <span class="toc-text">流式升级需求</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%881"><span class="toc-number">1.1.</span> <span class="toc-text">方案1</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%882"><span class="toc-number">1.2.</span> <span class="toc-text">方案2</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%883"><span class="toc-number">1.3.</span> <span class="toc-text">方案3</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%884"><span class="toc-number">1.4.</span> <span class="toc-text">方案4</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E4%BF%A1%E6%81%AF"><span class="toc-number">2.</span> <span class="toc-text">其他信息</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%B0%83%E7%A0%94"><span class="toc-number">3.</span> <span class="toc-text">调研</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%B7%E4%BD%93%E9%9C%80%E6%B1%82%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">具体需求实现</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E6%95%B0%E5%AD%97%E6%AE%B5"><span class="toc-number">4.1.</span> <span class="toc-text">参数字段</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OTA%E5%8C%85%E8%A7%A3%E6%9E%90"><span class="toc-number">4.2.</span> <span class="toc-text">OTA包解析</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ViewModel的研究 | BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="ViewModel的使用场景 Activity or Fragment为Controller  场景一、Controller配置变化导致其重建若需要保证Controller转屏前后的数据一致性，传统的方法需要我们在onSaveInstance保存数据，复杂类型的数据还必须实现Parcelable接口。使用ViewModel去维护数据则可以解决这个问题，ViewModel为我们在重建的时候保存了数据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ViewModel的研究">
+<meta property="og:url" content="https://bravestsnail.github.io/2022/09/21/posts/ViewModel%E7%9A%84%E7%A0%94%E7%A9%B6/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:description" content="ViewModel的使用场景 Activity or Fragment为Controller  场景一、Controller配置变化导致其重建若需要保证Controller转屏前后的数据一致性，传统的方法需要我们在onSaveInstance保存数据，复杂类型的数据还必须实现Parcelable接口。使用ViewModel去维护数据则可以解决这个问题，ViewModel为我们在重建的时候保存了数据">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:published_time" content="2022-09-21T18:20:40.000Z">
+<meta property="article:modified_time" content="2025-06-04T12:46:35.128Z">
+<meta property="article:author" content="BravestSnail">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="LiveData">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "ViewModel的研究",
+  "url": "https://bravestsnail.github.io/2022/09/21/posts/ViewModel%E7%9A%84%E7%A0%94%E7%A9%B6/",
+  "image": "https://bravestsnail.github.io/images/avatar.png",
+  "datePublished": "2022-09-21T18:20:40.000Z",
+  "dateModified": "2025-06-04T12:46:35.128Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "BravestSnail",
+      "url": "https://bravestsnail.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/2022/09/21/posts/ViewModel%E7%9A%84%E7%A0%94%E7%A9%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ViewModel的研究',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">ViewModel的研究</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">ViewModel的研究</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-09-21T18:20:40.000Z" title="发表于 2022-09-22 02:20:40">2022-09-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-04T12:46:35.128Z" title="更新于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="ViewModel的使用场景"><a href="#ViewModel的使用场景" class="headerlink" title="ViewModel的使用场景"></a>ViewModel的使用场景</h2><blockquote>
+<p>Activity or Fragment为Controller</p>
+</blockquote>
+<h3 id="场景一、Controller配置变化导致其重建"><a href="#场景一、Controller配置变化导致其重建" class="headerlink" title="场景一、Controller配置变化导致其重建"></a>场景一、Controller配置变化导致其重建</h3><p>若需要保证Controller转屏前后的数据一致性，传统的方法需要我们在<code>onSaveInstance</code>保存数据，复杂类型的数据还必须实现<code>Parcelable</code>接口。使用ViewModel去维护数据则可以解决这个问题，ViewModel为我们在重建的时候保存了数据。</p>
+<h3 id="场景二、多Controler共享数据"><a href="#场景二、多Controler共享数据" class="headerlink" title="场景二、多Controler共享数据"></a>场景二、多Controler共享数据</h3><p>若要实现Activity和Fragment之间的做法，我们常用的方法有：SharedPreference、Database、全局变量、两者之间回调。这些实现会随着业务规模的扩大，变得难以维护，且不易独立进行测试。ViewModel独立于两者之间，只有两者共同维护一个ViewModel实例，就能轻松实现共享数据，而且ViewModel是与生命周期绑定的，不用去手动销毁。</p>
+<h2 id="ViewModel的原理"><a href="#ViewModel的原理" class="headerlink" title="ViewModel的原理"></a>ViewModel的原理</h2><p><img src="https://img2020.cnblogs.com/blog/2467709/202107/2467709-20210717130008393-85929462.png" alt="ViewModel的原理图"></p>
+<p>如图所示：</p>
+<ul>
+<li>所有已经实例化的ViewModel缓存在ViewModelStore中，其实质就是一个HashMap；</li>
+<li>ViewModerStore与具体的Controller绑定，并与宿主 Controller 俱生俱灭，所以这就解释了为何 ViewModel 与宿主 Controller 的生命周期是一样长了，因为缓存它的 ViewModelStore 与宿主 Controller 寿命相等；</li>
+<li>获取ViewModel实例的方法委托给了ViewModerProvider, 若缓存中有则直接得到，若没有才创建并缓存；</li>
+</ul>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><h3 id="获取ViewModel的过程"><a href="#获取ViewModel的过程" class="headerlink" title="获取ViewModel的过程"></a>获取ViewModel的过程</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">ViewModelProvider</span><span class="params">(<span class="meta">@NonNull</span> ViewModelStore store, <span class="meta">@NonNull</span> Factory factory)</span> &#123;  </span><br><span class="line">    <span class="comment">//构造ViewModel工厂</span></span><br><span class="line">    mFactory = factory;  </span><br><span class="line">    <span class="comment">//FragmentActivity或者Fragment持有的ViewModelStore</span></span><br><span class="line">    mViewModelStore = store;  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ViewModelStore</span> &#123;  </span><br><span class="line">	<span class="comment">//key其实就是ViewModel的类名</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String, ViewModel&gt; mMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到ViewModelProvider持有了ViewModelStore，而在ViewModelStore内部通过一个HashMap去维护ViewModel缓存。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@NonNull</span>  </span><br><span class="line"><span class="meta">@MainThread</span>  </span><br><span class="line"><span class="keyword">public</span> &lt;T <span class="keyword">extends</span> <span class="title class_">ViewModel</span>&gt; T <span class="title function_">get</span><span class="params">(<span class="meta">@NonNull</span> Class&lt;T&gt; modelClass)</span> &#123; </span><br><span class="line">	<span class="comment">//获取ViewModel类名</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">canonicalName</span> <span class="operator">=</span> modelClass.getCanonicalName();  </span><br><span class="line">    <span class="keyword">if</span> (canonicalName == <span class="literal">null</span>) &#123;  </span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;Local and anonymous classes can not be ViewModels&quot;</span>);  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="keyword">return</span> get(DEFAULT_KEY + <span class="string">&quot;:&quot;</span> + canonicalName, modelClass);  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@NonNull</span>  </span><br><span class="line"><span class="meta">@MainThread</span>  </span><br><span class="line"><span class="keyword">public</span> &lt;T <span class="keyword">extends</span> <span class="title class_">ViewModel</span>&gt; T <span class="title function_">get</span><span class="params">(<span class="meta">@NonNull</span> String key, <span class="meta">@NonNull</span> Class&lt;T&gt; modelClass)</span> &#123;  </span><br><span class="line">	<span class="comment">//尝试从缓存中获取ViewModel</span></span><br><span class="line">    <span class="type">ViewModel</span> <span class="variable">viewModel</span> <span class="operator">=</span> mViewModelStore.get(key);  </span><br><span class="line">	<span class="comment">//获取的viewModel不为null</span></span><br><span class="line">    <span class="keyword">if</span> (modelClass.isInstance(viewModel)) &#123;  </span><br><span class="line">        <span class="keyword">if</span> (mFactory <span class="keyword">instanceof</span> OnRequeryFactory) &#123;  </span><br><span class="line">	        <span class="comment">//重新绑定生命周期</span></span><br><span class="line">            ((OnRequeryFactory) mFactory).onRequery(viewModel);  </span><br><span class="line">        &#125;  </span><br><span class="line">        <span class="keyword">return</span> (T) viewModel;  </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">        <span class="comment">//noinspection StatementWithEmptyBody  </span></span><br><span class="line">        <span class="keyword">if</span> (viewModel != <span class="literal">null</span>) &#123;  </span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> log a warning.  </span></span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="comment">//为空通过工厂创建一个ViewModel</span></span><br><span class="line">    <span class="keyword">if</span> (mFactory <span class="keyword">instanceof</span> KeyedFactory) &#123;  </span><br><span class="line">        viewModel = ((KeyedFactory) mFactory).create(key, modelClass);  </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">        viewModel = mFactory.create(modelClass);  </span><br><span class="line">    &#125;  </span><br><span class="line">    mViewModelStore.put(key, viewModel);  </span><br><span class="line">    <span class="keyword">return</span> (T) viewModel;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来看看工厂具体创建ViewModel的过程, 默认的工厂是SavedStateViewModelFactory。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">SavedStateViewModelFactory</span> <span class="keyword">extends</span> <span class="title class_">ViewModelProvider</span>.KeyedFactory &#123;  </span><br><span class="line">    <span class="keyword">public</span> &lt;T <span class="keyword">extends</span> <span class="title class_">ViewModel</span>&gt; T <span class="title function_">create</span><span class="params">(<span class="meta">@NonNull</span> String key, <span class="meta">@NonNull</span> Class&lt;T&gt; modelClass)</span> &#123;  </span><br><span class="line">    <span class="type">boolean</span> <span class="variable">isAndroidViewModel</span> <span class="operator">=</span> AndroidViewModel.class.isAssignableFrom(modelClass);  </span><br><span class="line">    Constructor&lt;T&gt; constructor;  </span><br><span class="line">    <span class="comment">//寻找合适的ViewModel构造方法</span></span><br><span class="line">    <span class="keyword">if</span> (isAndroidViewModel &amp;&amp; mApplication != <span class="literal">null</span>) &#123;  </span><br><span class="line">        constructor = findMatchingConstructor(modelClass, ANDROID_VIEWMODEL_SIGNATURE);  </span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">        constructor = findMatchingConstructor(modelClass, VIEWMODEL_SIGNATURE);  </span><br><span class="line">    &#125;  </span><br><span class="line">    <span class="comment">// doesn&#x27;t need SavedStateHandle </span></span><br><span class="line">    <span class="comment">//不需要SavedStateHandle直接通过工厂构建</span></span><br><span class="line">    <span class="keyword">if</span> (constructor == <span class="literal">null</span>) &#123;  </span><br><span class="line">        <span class="keyword">return</span> mFactory.create(modelClass);  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="type">SavedStateHandleController</span> <span class="variable">controller</span> <span class="operator">=</span> SavedStateHandleController.create(  </span><br><span class="line">            mSavedStateRegistry, mLifecycle, key, mDefaultArgs);  </span><br><span class="line">    <span class="comment">//通过寻找的构造器构造</span></span><br><span class="line">    <span class="keyword">try</span> &#123;  </span><br><span class="line">        T viewmodel;  </span><br><span class="line">        <span class="keyword">if</span> (isAndroidViewModel &amp;&amp; mApplication != <span class="literal">null</span>) &#123;  </span><br><span class="line">            viewmodel = constructor.newInstance(mApplication, controller.getHandle());  </span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;  </span><br><span class="line">            viewmodel = constructor.newInstance(controller.getHandle());  </span><br><span class="line">        &#125;  </span><br><span class="line">        viewmodel.setTagIfAbsent(TAG_SAVED_STATE_HANDLE_CONTROLLER, controller);  </span><br><span class="line">        <span class="keyword">return</span> viewmodel;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="ViewModel与宿主生命周期保持一致的原理"><a href="#ViewModel与宿主生命周期保持一致的原理" class="headerlink" title="ViewModel与宿主生命周期保持一致的原理"></a>ViewModel与宿主生命周期保持一致的原理</h3><p>前面我们说ViewModel与ViewModel与宿主生命周期保持一致，其中原理是什么。</p>
+<h4 id="ViewModelStore树"><a href="#ViewModelStore树" class="headerlink" title="ViewModelStore树"></a>ViewModelStore树</h4><p><img src="https://img2020.cnblogs.com/blog/2467709/202107/2467709-20210717130056954-527145710.png"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io">BravestSnail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io/2022/09/21/posts/ViewModel%E7%9A%84%E7%A0%94%E7%A9%B6/">https://bravestsnail.github.io/2022/09/21/posts/ViewModel%E7%9A%84%E7%A0%94%E7%A9%B6/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://bravestsnail.github.io" target="_blank">BravestSnail's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Android/">Android</a><a class="post-meta__tags" href="/tags/LiveData/">LiveData</a></div><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/09/21/posts/LiveData%E5%8E%9F%E7%90%86/" title="LiveData原理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">LiveData原理</div></div><div class="info-2"><div class="info-item-1">LiveData的使用123456789val livedata = LiveData&lt;Int&gt;()//发送数据livedata.setValue()//立即生效，只能在主线程调用livedata.postValue()//通过Handler转到主线程，有丢失数据的风险，可以用来在子线程调用//观察数据void observe(@NonNull LifecycleOwner owner, @NonNull Observer&lt;? super T&gt; observer)livedata.observe(this) &#123;&#125;//第一个参数是一个`LifecycleOwner`对象，这个让LiveData具有与生命周期绑定的能力。//第二个参数是一个`Observer`，是一个回调 LiveData的使用是十分的简单的，其原理也并不复杂。 observe方法123456789101112131415161718192021@MainThread  //@MainThread...</div></div></div></a><a class="pagination-related" href="/2023/02/13/posts/Java%E7%9A%84%E7%BB%A7%E6%89%BF%E5%92%8C%E7%BB%84%E5%90%88/" title="Java的继承和组合"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Java的继承和组合</div></div><div class="info-2"><div class="info-item-1">前言继承破坏封装Java有个三原则：封装、继承、多态。封装就是对外隐藏实现细节，提供简化接口。使用者不需要关心内部是怎么实现的，而且内部的实现细节是可以随时修改的，而不影响使用者。继承可能破坏封装是因为子类和父类可能存在着实现细节的依赖。导致子类在继承父类的时候，往往不得不关心父类的实现细节，而父类在修改其实现细节的时候，如果不考虑子类，也往往会影响子类。 封装是如何被破坏的考虑以下基类Base： 123456789101112131415public class Base &#123;	private static final int MAX_NUM = 1000;	private int[] arr = new int[MAX_NUM];	private int count;	public void add(int number)&#123;		if(count&lt;MAX_NUM)&#123;			arr[count++] = number;		&#125;	&#125;	public void addAll(int[] numbers)&#123;		for(int...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/09/21/posts/LiveData%E5%8E%9F%E7%90%86/" title="LiveData原理"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-09-22</div><div class="info-item-2">LiveData原理</div></div><div class="info-2"><div class="info-item-1">LiveData的使用123456789val livedata = LiveData&lt;Int&gt;()//发送数据livedata.setValue()//立即生效，只能在主线程调用livedata.postValue()//通过Handler转到主线程，有丢失数据的风险，可以用来在子线程调用//观察数据void observe(@NonNull LifecycleOwner owner, @NonNull Observer&lt;? super T&gt; observer)livedata.observe(this) &#123;&#125;//第一个参数是一个`LifecycleOwner`对象，这个让LiveData具有与生命周期绑定的能力。//第二个参数是一个`Observer`，是一个回调 LiveData的使用是十分的简单的，其原理也并不复杂。 observe方法123456789101112131415161718192021@MainThread  //@MainThread...</div></div></div></a><a class="pagination-related" href="/2022/08/22/posts/Activity%E7%9A%84%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B/" title="Activity的启动流程"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-22</div><div class="info-item-2">Activity的启动流程</div></div><div class="info-2"><div class="info-item-1">Application的初始化从应用进程到系统进程ActivityThread在创建的时候，会将自己的ApplicationThread绑定到AMS中。  ActivityThread.main() ActivityThread.attach() IActivityManager.attachApplication(mAppThread) Binder.transact()        应用程序通过IActivityManager接口发起系统调用，调用attachApplication并传递IApplicationThread，执行流程从应用进程到了系统进程。  ActivityManagerService.onTransact() ActivityManagerService.attachApplication(IApplicationThread thread)AMS作为IActivityService的接口的服务端实现，会响应客户端的请求，最终attachApplication(IApplicationThread...</div></div></div></a><a class="pagination-related no-desc" href="/2022/08/25/posts/Handler/" title="Handler"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-25</div><div class="info-item-2">Handler</div></div></div></a><a class="pagination-related" href="/2022/08/20/posts/Paging3%E7%A0%94%E7%A9%B6/" title="Paging3研究"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-20</div><div class="info-item-2">Paging3研究</div></div><div class="info-2"><div class="info-item-1">从DataSource开始1234567891011121314151617181920212223242526class ActivityListDataSource(val groupId: String, val activityType: String) :      PagingSource&lt;Int, GroupActivity&gt;() &#123;      override suspend fun load(params: LoadParams&lt;Int&gt;): LoadResult&lt;Int, GroupActivity&gt; &#123;          Log.wtf(&quot;test&quot;, Exception())          return try &#123;              val curPage = params.key ?: 0              val pageData = SuspendGroupApi.fetchGroupActivities(groupId,...</div></div></div></a><a class="pagination-related" href="/2022/08/24/posts/SharedPreferences/" title="SharedPreferences"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-24</div><div class="info-item-2">SharedPreferences</div></div><div class="info-2"><div class="info-item-1">SharedPreferences是以键值对的方式保存数据的，数据存放在xml文件中。 获取SharedPreferences Context类的getSharedPreferences()方法。参数一：指定文件名称；参数二：指定操作模式，Android4.2之后只有MODE_PRIVATE一种模式。 Activity类的getPreferences()方法。文件名称默认是当前Activity的类名，接受一操作模式参数。 PreferenceManager类中的getDefaultSharedPerferences()方法。这是一个静态方法，接受一个Context参数，并自动使用当前应用程序的包名作为前缀命名文件名。  SharedPreferences的使用SharedPreferences对象本身不支持存储和修改，只能获取数据，存储修改是通过SharedPreferences.edit()获取内部接口Editor对象实现。 12345678910111213141516171819202122232425 1）写入数据：    ...</div></div></div></a><a class="pagination-related" href="/2020/04/28/posts/%E5%BC%80%E5%A7%8B%E4%BA%86Android%E4%BA%86%E7%9A%84%E5%AD%A6%E4%B9%A0/" title="开始了Android了的学习"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2020-04-28</div><div class="info-item-2">开始了Android了的学习</div></div><div class="info-2"><div class="info-item-1">我的《第一行代码》第三版到货了！非常的开心😀。同时也意味着我Android的学习就要开始了✊。 开始接触到了kotlin语言了，来说说它与Java的不同吧。🤞konlin的每一行代码是不用加’;’的，这让我有点不习惯。konlin的数据类型相较于java，它抛弃了我从c到java一直在用的基本数据类型，改用了包装类。另我惊喜的是konlin加入了类型推导机制，我可以不表明一个变量的类型是Int或String，它会自己去分辨。另一个新奇的是它对代码的简化，如下代码：fun largerNumber(num1: Int, num2: Int): Int &#x3D; max(num1, num2)省略掉了原本的{}和return，不过这种写法的适用范围只有当函数里只有一条语句的时候。🤞 暂时学到了这里。持续更新中。。。 </div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">78</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#ViewModel%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">ViewModel的使用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%E3%80%81Controller%E9%85%8D%E7%BD%AE%E5%8F%98%E5%8C%96%E5%AF%BC%E8%87%B4%E5%85%B6%E9%87%8D%E5%BB%BA"><span class="toc-number">1.1.</span> <span class="toc-text">场景一、Controller配置变化导致其重建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%E3%80%81%E5%A4%9AControler%E5%85%B1%E4%BA%AB%E6%95%B0%E6%8D%AE"><span class="toc-number">1.2.</span> <span class="toc-text">场景二、多Controler共享数据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ViewModel%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">ViewModel的原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">源码分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96ViewModel%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-number">3.1.</span> <span class="toc-text">获取ViewModel的过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ViewModel%E4%B8%8E%E5%AE%BF%E4%B8%BB%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%BF%9D%E6%8C%81%E4%B8%80%E8%87%B4%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">3.2.</span> <span class="toc-text">ViewModel与宿主生命周期保持一致的原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ViewModelStore%E6%A0%91"><span class="toc-number">3.2.1.</span> <span class="toc-text">ViewModelStore树</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

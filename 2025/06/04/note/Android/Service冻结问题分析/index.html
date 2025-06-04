@@ -1,0 +1,404 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Service冻结问题分析 | BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="现象分析bug现象开启录屏，运行中的计时小工具，在运行40min左右，突然暂停计时。重新点击系统恢复。 初步判断可能是录屏停止，导致录制的视频卡住。录屏排查后排除这种可能。 后续发现日志中有小工具ANR记录。 1234567891011121314151617181920212223242526    pid: 29710    process: &quot;com.seewo.widgetcou">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Service冻结问题分析">
+<meta property="og:url" content="https://bravestsnail.github.io/2025/06/04/note/Android/Service%E5%86%BB%E7%BB%93%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:description" content="现象分析bug现象开启录屏，运行中的计时小工具，在运行40min左右，突然暂停计时。重新点击系统恢复。 初步判断可能是录屏停止，导致录制的视频卡住。录屏排查后排除这种可能。 后续发现日志中有小工具ANR记录。 1234567891011121314151617181920212223242526    pid: 29710    process: &quot;com.seewo.widgetcou">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:published_time" content="2025-06-04T12:46:35.120Z">
+<meta property="article:modified_time" content="2025-06-04T12:46:35.120Z">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Service冻结问题分析",
+  "url": "https://bravestsnail.github.io/2025/06/04/note/Android/Service%E5%86%BB%E7%BB%93%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90/",
+  "image": "https://bravestsnail.github.io/images/avatar.png",
+  "datePublished": "2025-06-04T12:46:35.120Z",
+  "dateModified": "2025-06-04T12:46:35.120Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "BravestSnail",
+      "url": "https://bravestsnail.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/2025/06/04/note/Android/Service%E5%86%BB%E7%BB%93%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Service冻结问题分析',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Service冻结问题分析</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">Service冻结问题分析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-04T12:46:35.120Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-04T12:46:35.120Z" title="更新于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="现象分析"><a href="#现象分析" class="headerlink" title="现象分析"></a>现象分析</h2><h3 id="bug现象"><a href="#bug现象" class="headerlink" title="bug现象"></a>bug现象</h3><p>开启录屏，运行中的计时小工具，在运行40min左右，突然暂停计时。重新点击系统恢复。</p>
+<h3 id="初步判断"><a href="#初步判断" class="headerlink" title="初步判断"></a>初步判断</h3><p>可能是录屏停止，导致录制的视频卡住。<br>录屏排查后排除这种可能。</p>
+<h3 id="后续发现"><a href="#后续发现" class="headerlink" title="后续发现"></a>后续发现</h3><p>日志中有小工具ANR记录。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">    pid: 29710</span><br><span class="line">    process: &quot;com.seewo.widgetcountdown&quot;</span><br><span class="line">    process_class: 2</span><br><span class="line">    subject: &quot;Input dispatching timed out (d0f3ce2 L_E (server) is not responding. Waited 5000ms for MotionEvent)&quot;</span><br><span class="line">    uid: 1000</span><br><span class="line"></span><br><span class="line">&quot;pool-9-thread-1&quot; prio=5 tid=2 Runnable</span><br><span class="line">  | group=&quot;main&quot; sCount=0 ucsCount=0 flags=0 obj=0x77080018 self=0xb4000073973e16f0</span><br><span class="line">  | sysTid=29805 nice=0 cgrp=default sched=0/0 handle=0x720bcfdcb0</span><br><span class="line">  | state=R schedstat=( 74395673416 7923003109 313554 ) utm=6456 stm=983 core=1 HZ=100</span><br><span class="line">  | stack=0x720bbfa000-0x720bbfc000 stackSize=1039KB</span><br><span class="line">  | held mutexes= &quot;mutator lock&quot;(shared held)</span><br><span class="line">  at java.lang.String.checkBoundsBeginEnd(String.java:3941)</span><br><span class="line">  at java.lang.String.substring(String.java:2467)</span><br><span class="line">  at java.util.Formatter$FormatSpecifierParser.nextInt(Formatter.java:2638)</span><br><span class="line">  at java.util.Formatter$FormatSpecifierParser.&lt;init&gt;(Formatter.java:2613)</span><br><span class="line">  at java.util.Formatter.parse(Formatter.java:2563)</span><br><span class="line">  at java.util.Formatter.format(Formatter.java:2510)</span><br><span class="line">  at java.util.Formatter.format(Formatter.java:2464)</span><br><span class="line">  at java.lang.String.format(String.java:3603)</span><br><span class="line">  at com.seewo.widgetstopwatch.core.b.l(StopWatch.java:5)</span><br><span class="line">  at com.seewo.widgetstopwatch.core.b.g(StopWatch.java:1)</span><br><span class="line">  at com.seewo.widgetstopwatch.core.b.c(StopWatch.java:1)</span><br><span class="line">  at com.seewo.widgetstopwatch.core.b$a.run(StopWatch.java:3)</span><br><span class="line">  at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:463)</span><br><span class="line">  at java.util.concurrent.FutureTask.runAndReset(FutureTask.java:305)</span><br></pre></td></tr></table></figure>
+<p>分析：ANR日志可以看出应用在等待一个锁释放，但是并没有显示什么应用持有了锁没有及时释放。</p>
+<h3 id="最终定位"><a href="#最终定位" class="headerlink" title="最终定位"></a>最终定位</h3><p>其实ANR从日志中可以看出，是点击行为发生的时候才触发的，并不是停止计时的真正原因。<br>因此，往上追溯，发现了freezing，应用被冻结的日志，至此根因找到了，是AMS主动冻结了该应用。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">12-06 15:24:22.490  1000   765   847 D ActivityManager: freezing 29669 com.seewo.widgetstopwatch</span><br></pre></td></tr></table></figure>
+
+<h2 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">freezeProcess</span><span class="params">(<span class="keyword">final</span> ProcessRecord proc)</span> &#123;  </span><br><span class="line">    ...</span><br><span class="line">  </span><br><span class="line">    <span class="keyword">synchronized</span> (mProcLock) &#123;  </span><br><span class="line">        pid = proc.getPid();  </span><br><span class="line">        <span class="keyword">if</span> (proc.mState.getCurAdj() &lt; ProcessList.CACHED_APP_MIN_ADJ  </span><br><span class="line">                || opt.shouldNotFreeze()) &#123;  </span><br><span class="line">            <span class="keyword">if</span> (DEBUG_FREEZER) &#123;  </span><br><span class="line">                Slog.d(TAG_AM, <span class="string">&quot;Skipping freeze for process &quot;</span> + pid  </span><br><span class="line">                        + <span class="string">&quot; &quot;</span> + name + <span class="string">&quot; curAdj = &quot;</span> + proc.mState.getCurAdj()  </span><br><span class="line">                        + <span class="string">&quot;, shouldNotFreeze = &quot;</span> + opt.shouldNotFreeze());  </span><br><span class="line">            &#125;  </span><br><span class="line">            <span class="keyword">return</span>;  </span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> (mFreezerOverride) &#123;  </span><br><span class="line">            opt.setFreezerOverride(<span class="literal">true</span>);  </span><br><span class="line">            Slog.d(TAG_AM, <span class="string">&quot;Skipping freeze for process &quot;</span> + pid  </span><br><span class="line">                    + <span class="string">&quot; &quot;</span> + name + <span class="string">&quot; curAdj = &quot;</span> + proc.mState.getCurAdj()  </span><br><span class="line">                    + <span class="string">&quot;(override)&quot;</span>);  </span><br><span class="line">            <span class="keyword">return</span>;        &#125;  </span><br><span class="line">  </span><br><span class="line">        <span class="keyword">if</span> (pid == <span class="number">0</span> || opt.isFrozen()) &#123;  </span><br><span class="line">            <span class="comment">// Already frozen or not a real process, either one being  </span></span><br><span class="line">            <span class="comment">// launched or one being killed            return;  </span></span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        Slog.d(TAG_AM, <span class="string">&quot;freezing &quot;</span> + pid + <span class="string">&quot; &quot;</span> + name);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">CACHED_APP_MIN_ADJ</span> <span class="operator">=</span> <span class="number">900</span>;</span><br></pre></td></tr></table></figure>
+<p>当应用的ADJ小于CACHED_APP_MIN_ADJ，会被系统冻结</p>
+<h3 id="冻结时间"><a href="#冻结时间" class="headerlink" title="冻结时间"></a>冻结时间</h3><p>默认的冻结时间为60s，该时间可以在系统配置</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">static final long DEFAULT_FREEZER_DEBOUNCE_TIMEOUT = 600_000L;</span><br><span class="line"></span><br><span class="line">mFreezerDebounceTimeout = DeviceConfig.getLong(</span><br><span class="line">DeviceConfig.NAMESPACE_ACTIVITY_MANAGER_NATIVE_BOOT,</span><br><span class="line">KEY_FREEZER_DEBOUNCE_TIMEOUT, DEFAULT_FREEZER_DEBOUNCE_TIMEOUT);</span><br></pre></td></tr></table></figure>
+<h3 id="应用OomAdj"><a href="#应用OomAdj" class="headerlink" title="应用OomAdj"></a>应用OomAdj</h3><p>OomAdjuster会根据应用的运行情况更新应用的OomAdj, 直到OomAdj&lt;CACHED_APP_MIN_ADJ， 应用将被杀死。</p>
+<table>
+<thead>
+<tr>
+<th>ADJ级别</th>
+<th>adjString</th>
+<th>取值</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>UNKNOWN_ADJ</td>
+<td></td>
+<td>1001</td>
+<td>一般指将要会缓存进程，无法获取确定值</td>
+</tr>
+<tr>
+<td>CACHED_APP_MAX_ADJ</td>
+<td></td>
+<td>999</td>
+<td>不可见进程的adj最大值</td>
+</tr>
+<tr>
+<td>CACHED_APP_LMK_FIRST_ADJ</td>
+<td></td>
+<td>950</td>
+<td>lowmem 查杀的最小等级</td>
+</tr>
+<tr>
+<td>CACHED_APP_MIN_ADJ</td>
+<td>cch</td>
+<td>900</td>
+<td>不可见进程的adj最小值</td>
+</tr>
+<tr>
+<td>SERVICE_B_ADJ</td>
+<td>svcb</td>
+<td>800</td>
+<td>B List中的Service（运行时间较长、使用可能性更小）</td>
+</tr>
+<tr>
+<td>PREVIOUS_APP_ADJ</td>
+<td>prev</td>
+<td>700</td>
+<td>上一个App的进程(上一个stopActivity的进程&#x2F;20s内刚被使用的provider进程)</td>
+</tr>
+<tr>
+<td>HOME_APP_ADJ</td>
+<td>home</td>
+<td>600</td>
+<td>Home进程</td>
+</tr>
+<tr>
+<td>SERVICE_ADJ</td>
+<td>svc</td>
+<td>500</td>
+<td>服务进程(Service process)</td>
+</tr>
+<tr>
+<td>HEAVY_WEIGHT_APP_ADJ</td>
+<td>hvy</td>
+<td>400</td>
+<td>后台的重量级进程</td>
+</tr>
+<tr>
+<td>BACKUP_APP_ADJ</td>
+<td>bkup</td>
+<td>300</td>
+<td>备份进程</td>
+</tr>
+<tr>
+<td>PERCEPTIBLE_LOW_APP_ADJ</td>
+<td>prcl</td>
+<td>250</td>
+<td>由系统（或其他应用程序）绑定的进程，它比服务更重要，但不易察觉（clientAdj&lt;200通过BIND_NOT_PERCEPTIBLE bind）</td>
+</tr>
+<tr>
+<td>PERCEPTIBLE_APP_ADJ</td>
+<td>prcp</td>
+<td>200</td>
+<td>可感知进程，比如后台音乐播放 （前台服务&#x2F;display an overlay UI&#x2F;currently used for toasts&#x2F;clientAdj&lt;200通过BIND_NOT_VISIBLE bind）</td>
+</tr>
+<tr>
+<td>VISIBLE_APP_ADJ(VISIBLE_APP_LAYER_MAX200-100-1)</td>
+<td>vis</td>
+<td>100</td>
+<td>可见进程(Visible process)，一般是100+当前可见的layer数：activity不在前台，但是确实可见的或者正在运行远程动画</td>
+</tr>
+<tr>
+<td>PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ</td>
+<td></td>
+<td>50</td>
+<td>应用有前台服务，从前台切换到前台service，且在15s内到过前台</td>
+</tr>
+<tr>
+<td>FOREGROUND_APP_ADJ</td>
+<td>fg</td>
+<td>0</td>
+<td>前台进程(Foreground process):应用本身就是在前台或者正在接收处理广播isReceivingBroadcastLocked或者服务执行过程中</td>
+</tr>
+<tr>
+<td>PERSISTENT_SERVICE_ADJ</td>
+<td>psvc</td>
+<td>-700</td>
+<td>关联着系统或persistent进程（由startIsolatedProcess()方式启动的进程，或者是由system_server或者persistent进程所绑定的服务进程）</td>
+</tr>
+<tr>
+<td>PERSISTENT_PROC_ADJ</td>
+<td>pers</td>
+<td>-800</td>
+<td>系统persistent进程，比如telephony（一般不会被杀，即使被杀或crash，立即重启）</td>
+</tr>
+<tr>
+<td>SYSTEM_ADJ</td>
+<td>sys</td>
+<td>-900</td>
+<td>系统进程（system_server进程）</td>
+</tr>
+<tr>
+<td>NATIVE_ADJ</td>
+<td>ntv</td>
+<td>-1000</td>
+<td>native进程（由init进程fork出的进程，并不受system管控）</td>
+</tr>
+</tbody></table>
+<p>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/zhzhangnews/article/details/110474461">https://blog.csdn.net/zhzhangnews/article/details/110474461</a></p>
+<h3 id="最终杀手"><a href="#最终杀手" class="headerlink" title="最终杀手"></a>最终杀手</h3><p><a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/v3.8/drivers/staging/android/lowmemorykiller.c">lowmemorykiller</a></p>
+<h2 id="冻结机制参考"><a href="#冻结机制参考" class="headerlink" title="冻结机制参考"></a>冻结机制参考</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/545235abc/p/16771310.html">https://www.cnblogs.com/545235abc/p/16771310.html</a></p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>1、开启前台服务<br>2、创建一个具有外部进程依赖关系的内容提供者（Provider）<a target="_blank" rel="noopener" href="https://cs.android.com/android/platform/superproject/main/+/main:frameworks/base/services/core/java/com/android/server/am/OomAdjuster.java;l=1722?q=computeOomAdjLSP&ss=android#:~:text=hasExternalProcessHandles">依据</a><br>3、添加到省电白名单内 <a target="_blank" rel="noopener" href="https://cs.android.com/android/platform/superproject/+/master:frameworks/base/apex/jobscheduler/service/java/com/android/server/DeviceIdleController.java;l=2994?q=addPowerSaveTempWhitelistAppDirectInternal&ss=android#:~:text=void-,addPowerSaveTempWhitelistAppDirectInternal,-(int%20callingUid">依据</a><br>4、声明为persistent应用</p>
+<h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>改动量</th>
+<th>支持范围</th>
+<th>时间成本</th>
+<th>验证成本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前台服务</td>
+<td>需要修改服务启动逻辑和服务本身逻辑</td>
+<td>所有应用</td>
+<td>慢,修改设计应用自身和启动者</td>
+<td>中</td>
+</tr>
+<tr>
+<td>添加ContentProvider</td>
+<td>只需要在当前应用添加一个ContentProvider</td>
+<td>系统应用</td>
+<td>快,只需修改应用自身</td>
+<td>小</td>
+</tr>
+<tr>
+<td>省电白名单</td>
+<td>需要系统为应用配置白名单</td>
+<td>所有应用</td>
+<td>慢,需要系统响应</td>
+<td>小</td>
+</tr>
+<tr>
+<td>persistent应用</td>
+<td>设置persistent属性</td>
+<td>系统应用</td>
+<td>快,添加属性即可</td>
+<td>大</td>
+</tr>
+<tr>
+<td>省电白名单有额外的好处，可以由厂商控制哪些应用加入白名单</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>应用场景：如客供应用，无需修改代码，由我们厂商之间将其应用添加进入白名单即可解决应用冻结问题</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="额外"><a href="#额外" class="headerlink" title="额外"></a>额外</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">D ActivityManager: freezing 2881 com.seewo.ota</span><br><span class="line">D ActivityManager: freezing 6830 com.android.htmlviewer</span><br><span class="line">D ActivityManager: freezing 8696 com.mobisystems.office</span><br><span class="line">D ActivityManager: freezing 13125 com.android.externalstorage</span><br><span class="line">D ActivityManager: freezing 1902 android.process.media</span><br><span class="line">D ActivityManager: freezing 13139 com.seewo.electricshelf</span><br><span class="line">D ActivityManager: freezing 26877 com.android.traceur</span><br><span class="line">D ActivityManager: freezing 2888 com.seewo.osservice:daemon</span><br><span class="line">D ActivityManager: freezing 20983 android.process.acore</span><br><span class="line">D ActivityManager: freezing 21314 org.mozilla.firefox:media</span><br><span class="line">D ActivityManager: freezing 5375 android:ui</span><br><span class="line">D ActivityManager: freezing 7381 com.ifpdos.photos</span><br><span class="line">D ActivityManager: freezing 7155 com.ifpdos.player</span><br><span class="line">D ActivityManager: freezing 6422 jp.inworks.oyamozc</span><br><span class="line">D ActivityManager: freezing 2241 com.android.webview:webview_service</span><br><span class="line">D ActivityManager: freezing 8815 com.android.webview:sandboxed_process0:org.chromium.content.</span><br><span class="line">D ActivityManager: freezing 10909 org.mozilla.firefox:tab0</span><br><span class="line">D ActivityManager: freezing 11342 org.mozilla.firefox:utility</span><br><span class="line">D ActivityManager: freezing 10975 org.mozilla.firefox:gpu</span><br><span class="line">D ActivityManager: freezing 10813 org.mozilla.firefox</span><br><span class="line">D ActivityManager: freezing 27605 com.android.printspooler</span><br><span class="line">D ActivityManager: freezing 2553 com.ifpdos.displaycenter</span><br><span class="line">D ActivityManager: freezing 26387 com.seewo.freezescreen</span><br><span class="line">D ActivityManager: freezing 2058 com.seewo.widgetstopwatch</span><br><span class="line">D ActivityManager: freezing 4703 com.seewo.widgetcountdown</span><br></pre></td></tr></table></figure></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io">BravestSnail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io/2025/06/04/note/Android/Service%E5%86%BB%E7%BB%93%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90/">https://bravestsnail.github.io/2025/06/04/note/Android/Service%E5%86%BB%E7%BB%93%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://bravestsnail.github.io" target="_blank">BravestSnail's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/06/04/note/Android/Framework/persistent%E5%B1%9E%E6%80%A7%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" title="persistent属性工作流程分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">persistent属性工作流程分析</div></div><div class="info-2"><div class="info-item-1">sequenceDiagram ActivityManagerService ->> ActivityManagerService: systemReady ActivityManagerService ->> ActivityManagerService: startPersistentApps ActivityManagerService ->> ActivityManagerService: addAppLocked ActivityManagerService ->> ProcessList: startProcessLocked </div></div></div></a><a class="pagination-related" href="/2025/06/04/note/Android/adb%E6%A8%A1%E6%8B%9F%E6%8C%89%E9%94%AE/" title="adb模拟按键"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">adb模拟按键</div></div><div class="info-2"><div class="info-item-1">模拟点击1adb shell input tap 600 1300 模拟输入触摸事件，位置(600,1300） 模拟遥控12adb shell input keyevent 3 &amp;&amp; adb shell input keyevent 3adb shell &quot;am broadcast -a com.cvte.seewo.action.key_click --ei key_code 5015 --es key_type keypad; sleep 0.01; am broadcast -a com.cvte.seewo.action.key_click --ei key_code 5015 --es key_type keypad;&quot;  adb shell content query –uri content:&#x2F;&#x2F;com.seewo.osservice.provider.VCommonContentProvider&#x2F;key –projection key_httpserver_passwordRow: 0...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">78</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%B0%E8%B1%A1%E5%88%86%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">现象分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#bug%E7%8E%B0%E8%B1%A1"><span class="toc-number">1.1.</span> <span class="toc-text">bug现象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E6%AD%A5%E5%88%A4%E6%96%AD"><span class="toc-number">1.2.</span> <span class="toc-text">初步判断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8E%E7%BB%AD%E5%8F%91%E7%8E%B0"><span class="toc-number">1.3.</span> <span class="toc-text">后续发现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E7%BB%88%E5%AE%9A%E4%BD%8D"><span class="toc-number">1.4.</span> <span class="toc-text">最终定位</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">代码分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%BB%E7%BB%93%E6%97%B6%E9%97%B4"><span class="toc-number">2.1.</span> <span class="toc-text">冻结时间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%94%E7%94%A8OomAdj"><span class="toc-number">2.2.</span> <span class="toc-text">应用OomAdj</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E7%BB%88%E6%9D%80%E6%89%8B"><span class="toc-number">2.3.</span> <span class="toc-text">最终杀手</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%BB%E7%BB%93%E6%9C%BA%E5%88%B6%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">冻结机制参考</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">4.</span> <span class="toc-text">解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9%E6%AF%94"><span class="toc-number">4.1.</span> <span class="toc-text">对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%9D%E5%A4%96"><span class="toc-number">5.</span> <span class="toc-text">额外</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

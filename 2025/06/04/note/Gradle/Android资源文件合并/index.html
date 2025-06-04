@@ -1,0 +1,519 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Android资源文件合并 | BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="什么文件是资源文件？ &#x2F;res目录下的所有文件， &#x2F;assets目录 Manifest文件  需要合并的资源文件来源是哪？通常apk中的资源来源有3个，具体可以参考官网：  主资源(main source set)：比如src&#x2F;main&#x2F;res 编译变量(Build variant source set): 比如src&#x2F;demoDebug&#x2F;res 库文件依赖(libraries): 也就是我们引进">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android资源文件合并">
+<meta property="og:url" content="https://bravestsnail.github.io/2025/06/04/note/Gradle/Android%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E5%90%88%E5%B9%B6/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:description" content="什么文件是资源文件？ &#x2F;res目录下的所有文件， &#x2F;assets目录 Manifest文件  需要合并的资源文件来源是哪？通常apk中的资源来源有3个，具体可以参考官网：  主资源(main source set)：比如src&#x2F;main&#x2F;res 编译变量(Build variant source set): 比如src&#x2F;demoDebug&#x2F;res 库文件依赖(libraries): 也就是我们引进">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:published_time" content="2025-06-04T12:46:35.126Z">
+<meta property="article:modified_time" content="2025-06-04T12:46:35.126Z">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Android资源文件合并",
+  "url": "https://bravestsnail.github.io/2025/06/04/note/Gradle/Android%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E5%90%88%E5%B9%B6/",
+  "image": "https://bravestsnail.github.io/images/avatar.png",
+  "datePublished": "2025-06-04T12:46:35.126Z",
+  "dateModified": "2025-06-04T12:46:35.126Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "BravestSnail",
+      "url": "https://bravestsnail.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/2025/06/04/note/Gradle/Android%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E5%90%88%E5%B9%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Android资源文件合并',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Android资源文件合并</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">Android资源文件合并</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-04T12:46:35.126Z" title="更新于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="什么文件是资源文件？"><a href="#什么文件是资源文件？" class="headerlink" title="什么文件是资源文件？"></a>什么文件是资源文件？</h2><ul>
+<li><code>/res</code>目录下的所有文件，</li>
+<li><code>/assets</code>目录</li>
+<li><code>Manifest</code>文件</li>
+</ul>
+<h2 id="需要合并的资源文件来源是哪？"><a href="#需要合并的资源文件来源是哪？" class="headerlink" title="需要合并的资源文件来源是哪？"></a>需要合并的资源文件来源是哪？</h2><p>通常apk中的资源来源有3个，具体可以参考<a href="https://link.juejin.cn/?target=https://developer.android.com/studio/write/add-resources%23resource_merging" title="https:&#x2F;&#x2F;developer.android.com&#x2F;studio&#x2F;write&#x2F;add-resources#resource_merging">官网</a>：</p>
+<ul>
+<li>主资源(main source set)：比如<code>src/main/res</code></li>
+<li>编译变量(Build variant source set): 比如<code>src/demoDebug/res</code></li>
+<li>库文件依赖(libraries): 也就是我们引进的<code>aar</code>。</li>
+</ul>
+<h2 id="为什么要合并？"><a href="#为什么要合并？" class="headerlink" title="为什么要合并？"></a>为什么要合并？</h2><p>因为文件冲突了所以要合并。</p>
+<p>那么随之而来的问题是系统如何唯一表示一个资源文件？相同<code>resource type</code>(anim&#x2F;drawable&#x2F;string等)和相同<code>resource qualifier</code>(比如hdpi, value中的语言等)下相同文件名的资源，系统会认为他是相同的，会导致冲突，需要合并。</p>
+<h2 id="如何合并？"><a href="#如何合并？" class="headerlink" title="如何合并？"></a>如何合并？</h2><h3 id="合并-assets目录"><a href="#合并-assets目录" class="headerlink" title="合并/assets目录"></a>合并<code>/assets</code>目录</h3><p><code>asset</code>冲突只会是文件冲突，规则也简单，优先使用本地文件。</p>
+<h3 id="合并-res目录"><a href="#合并-res目录" class="headerlink" title="合并/res目录"></a>合并<code>/res</code>目录</h3><p><strong>单一<code>module</code>中的资源文件发生冲突时如何合并？</strong></p>
+<p>单一<code>module</code>下可能就会有相同的资源存在，比如有多个主资源集。那么当出现这种冲突的情况的时候，系统会怎么处理呢？规则是低优先级的资源会被覆盖掉。</p>
+<p>覆盖的优先级从高到低如下：</p>
+<p><strong>build variant &gt; build type &gt; product flavor &gt; main source set &gt; library dependences</strong></p>
+<p>举个栗子，如果我们主资源集下有两个资源： <code>res/layout/a.xml</code>, <code>res/layout/b.xml</code>, <code>build type</code>文件夹下面有<code>res/layout/a.xml</code>。那么最后打包生成的apk中的<code>res/layout/a.xml</code>来自于<code>build type</code>, <code>res/layout/b.xml</code>来自于<code>main source set</code>。</p>
+<p><strong>不同module中的资源文件发生冲突时如何合并？</strong></p>
+<p>当第三方依赖中的res文件与本地文件有冲突时，会优先选用本地文件。但<code>res/values</code>略有不同，此目录下的<code>strings.xml</code>、<code>color.xml</code>、<code>styles.xml</code>等文件会被整合到一个叫<code>values.xml</code>的文件中去，后与各第三方依赖中的<code>values.xml</code>进行内容上的合并，不会像<code>res</code>其它子目录文件一样直接舍弃第三方冲突文件。</p>
+<h3 id="Manifest合并"><a href="#Manifest合并" class="headerlink" title="Manifest合并"></a><code>Manifest</code>合并</h3><p>低优先级的manifest被合并到高优先级manifest中。</p>
+<p><img src="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2020/2/28/170899eae917d81a~tplv-t2oaga2asx-zoom-in-crop-mark:4536:0:0:0.image"></p>
+<p>不同来源的manifest优先级由高到低：</p>
+<ul>
+<li>构建变体（build variant）中的manifest<ul>
+<li>构建变体（build variant）manifest: 例如<code>src/demoDebug</code></li>
+<li>构建类型(build type) manifest: 例如<code>src/debug</code></li>
+<li>产品风味(product flavor) manifest: 例如<code>src/demo</code></li>
+</ul>
+</li>
+<li>本地 app module 中的manifest</li>
+<li>依赖的库中的manifest</li>
+</ul>
+<p>合并 manifest 中的属性值的默认规则如下：</p>
+<table>
+<thead>
+<tr>
+<th>High priority attribute</th>
+<th>Low priority attribute</th>
+<th>Attribute’s merged result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>No value</td>
+<td>No value</td>
+<td>No value (use default value)</td>
+</tr>
+<tr>
+<td>No value</td>
+<td>Value B</td>
+<td>Value B</td>
+</tr>
+<tr>
+<td>Value A</td>
+<td>No value</td>
+<td>Value A</td>
+</tr>
+<tr>
+<td>Value A</td>
+<td>Value A</td>
+<td>Value A</td>
+</tr>
+<tr>
+<td>Value A</td>
+<td>Value B</td>
+<td><strong>Conflict error</strong>—you must add a <a href="https://link.juejin.cn/?target=https://developer.android.com/studio/build/manifest-merge%23merge_rule_markers" title="https:&#x2F;&#x2F;developer.android.com&#x2F;studio&#x2F;build&#x2F;manifest-merge#merge_rule_markers">merge rule marker</a></td>
+</tr>
+</tbody></table>
+<p>但是也有如下例外：</p>
+<ul>
+<li><code>&lt;manifest&gt;</code>中的属性不会进行合并，直接使用高优先级manifest中的属性</li>
+<li><code>&lt;uses-feature&gt;</code>和<code>&lt;uses-library&gt;</code>中的<code>android:required</code>属性使用<code>or</code>规则进行合并</li>
+<li><code>&lt;uses-sdk&gt;</code>中的属性总是使用高优先级manifest中的，但以下情况例外：<ul>
+<li>当低优先级中定义的<code>minSdkVersion</code>较高时会报错。但是可以使用<code>overrideLibrary</code>合并规则解决此错误。</li>
+<li>当低优先级中定义的<code>targetSdkVersion</code>较低时，合并工具会使用高优先级manifest中的较高值。但是，它还添加了确保导入的库继续正常工作所需的任何系统权限（以防更高版本的Android增加了权限限制的情况）。<a href="https://link.juejin.cn/?target=https://developer.android.com/studio/build/manifest-merge%23implicit_system_permissions" title="https:&#x2F;&#x2F;developer.android.com&#x2F;studio&#x2F;build&#x2F;manifest-merge#implicit_system_permissions">可以点击这里查看合并工具可能会添加的权限</a></li>
+</ul>
+</li>
+<li><code>&lt;intent-filter&gt;</code>元素在合并中不会被改变，只会被添加到其父节点中去</li>
+</ul>
+<h2 id="合并规则标记"><a href="#合并规则标记" class="headerlink" title="合并规则标记"></a>合并规则标记</h2><p>合并规则标记是一个 XML 属性，可用于指定您对如何解决合并冲突或移除不需要的元素和属性的偏好。您可以对整个元素应用标记，也可以只对元素中的特定属性应用标记。<br>合并两个清单文件时，合并工具会在优先级较高的清单文件中查找这些标记。<br>所有标记都属于 Android <code>tools</code> 命名空间，因此您必须先在 <code>&lt;manifest&gt;</code> 元素中声明此命名空间，如下所示：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">manifest</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span>    </span></span><br><span class="line"><span class="tag">	<span class="attr">package</span>=<span class="string">&quot;com.example.myapp&quot;</span>      </span></span><br><span class="line"><span class="tag">	<span class="attr">xmlns:tools</span>=<span class="string">&quot;http://schemas.android.com/tools&quot;</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<h3 id="节点标记"><a href="#节点标记" class="headerlink" title="节点标记"></a>节点标记</h3><p>如需对整个 XML 元素（给定清单元素中的所有属性及其所有子标记）应用合并规则，请使用以下属性：<br><code>tools:node=&quot;merge&quot;</code><br>在没有冲突的情况下，使用<a target="_blank" rel="noopener" href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn#merge_conflict_heuristics">合并冲突启发法</a>合并此标记中的所有属性以及所有嵌套元素。<strong>这是元素的默认行为</strong>。<br>低优先级清单：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity</span> <span class="attr">android:name</span>=<span class="string">&quot;com.example.ActivityOne&quot;</span>    </span></span><br><span class="line"><span class="tag">		  <span class="attr">android:windowSoftInputMode</span>=<span class="string">&quot;stateUnchanged&quot;</span>&gt;</span>    </span><br><span class="line">		  <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span>        </span><br><span class="line">			  <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">&quot;android.intent.action.SEND&quot;</span> /&gt;</span>        </span><br><span class="line">			  <span class="tag">&lt;<span class="name">category</span> <span class="attr">android:name</span>=<span class="string">&quot;android.intent.category.DEFAULT&quot;</span> /&gt;</span>    </span><br><span class="line">		  <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">activity</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>高优先级清单：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity</span> <span class="attr">android:name</span>=<span class="string">&quot;com.example.ActivityOne&quot;</span>    </span></span><br><span class="line"><span class="tag">		  <span class="attr">android:windowSoftInputMode</span>=<span class="string">&quot;stateUnchanged&quot;</span>&gt;</span>    </span><br><span class="line">		  <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span>        </span><br><span class="line">			  <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">&quot;android.intent.action.SEND&quot;</span> /&gt;</span>        </span><br><span class="line">			  <span class="tag">&lt;<span class="name">category</span> <span class="attr">android:name</span>=<span class="string">&quot;android.intent.category.DEFAULT&quot;</span> /&gt;</span>    </span><br><span class="line">		  <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;/<span class="name">activity</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>合并后的清单结果：</p>
+<p><activity android:name="com.example.ActivityOne"    android:screenOrientation="portrait"    android:windowSoftInputMode="stateUnchanged">    <intent-filter>        <action android:name="android.intent.action.SEND" />        <category android:name="android.intent.category.DEFAULT" />    </intent-filter><br></activity>  </p>
+<p><code>tools:node=&quot;merge-only-attributes&quot;</code></p>
+<p>仅合并此标记中的属性，不合并嵌套元素。</p>
+<p>低优先级清单：</p>
+<p><activity android:name="com.example.ActivityOne"    android:windowSoftInputMode="stateUnchanged">    <intent-filter>        <action android:name="android.intent.action.SEND" />        <data android:type="image/*" />        <category android:name="android.intent.category.DEFAULT" />    </intent-filter><br></activity>  </p>
+<p>高优先级清单：</p>
+<p>&lt;activity android:name&#x3D;”com.example.ActivityOne”    android:screenOrientation&#x3D;”portrait”    **tools:node&#x3D;”merge-only-attributes”**&gt;<br></activity>  </p>
+<p>合并后的清单结果：</p>
+<p><activity android:name="com.example.ActivityOne"    android:screenOrientation="portrait"    android:windowSoftInputMode="stateUnchanged"><br></activity>  </p>
+<p><code>tools:node=&quot;remove&quot;</code></p>
+<p>从合并后的清单中移除此元素。虽然您似乎只需要删除此元素即可，但如果您发现合并后的清单中有不需要的元素，而且该元素是由不受您控制的优先级较低的清单文件（如导入的库）提供的，则必须使用此属性。</p>
+<p>低优先级清单：</p>
+<p><activity-alias android:name="com.example.alias">  <meta-data android:name="cow"      android:value="@string/moo"/>  <meta-data android:name="duck"      android:value="@string/quack"/><br></activity-alias>  </p>
+<p>高优先级清单：</p>
+<p><activity-alias android:name="com.example.alias">  &lt;meta-data android:name&#x3D;”cow”      **tools:node&#x3D;”remove”**&#x2F;&gt;<br></activity-alias>  </p>
+<p>合并后的清单结果：</p>
+<p><activity-alias android:name="com.example.alias">  <meta-data android:name="duck"      android:value="@string/quack"/><br></activity-alias>  </p>
+<p><code>tools:node=&quot;removeAll&quot;</code></p>
+<p>与 <code>tools:node=&quot;remove&quot;</code> 类似，但它会移除与此元素类型匹配的所有元素（同一父元素内）。</p>
+<p>低优先级清单：</p>
+<p><activity-alias android:name="com.example.alias">  <meta-data android:name="cow"      android:value="@string/moo"/>  <meta-data android:name="duck"      android:value="@string/quack"/><br></activity-alias>  </p>
+<p>高优先级清单：</p>
+<p><activity-alias android:name="com.example.alias">  &lt;meta-data **tools:node&#x3D;”removeAll”**&#x2F;&gt;<br></activity-alias>  </p>
+<p>合并后的清单结果：</p>
+<activity-alias android:name="com.example.alias">  
+</activity-alias>  
+
+<p><code>tools:node=&quot;replace&quot;</code></p>
+<p>完全替换优先级较低的元素。也就是说，如果优先级较低的清单中有匹配的元素，会将其忽略并完全按照此元素在此清单中显示的样子使用它。</p>
+<p>低优先级清单：</p>
+<p><activity-alias android:name="com.example.alias">  <meta-data android:name="cow"      android:value="@string/moo"/>  <meta-data android:name="duck"      android:value="@string/quack"/><br></activity-alias>  </p>
+<p>高优先级清单：</p>
+<p>&lt;activity-alias android:name&#x3D;”com.example.alias”    **tools:node&#x3D;”replace”**&gt;  <meta-data android:name="fox"      android:value="@string/dingeringeding"/><br></activity-alias>  </p>
+<p>合并后的清单结果：</p>
+<p><activity-alias android:name="com.example.alias">  <meta-data android:name="fox"      android:value="@string/dingeringeding"/><br></activity-alias>  </p>
+<p><code>tools:node=&quot;strict&quot;</code></p>
+<p>每当此元素在优先级较低的清单中与在优先级较高的清单中不完全匹配时，都会导致构建失败（除非已通过其他合并规则标记解决）。这会替换<a target="_blank" rel="noopener" href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn#merge_conflict_heuristics">合并冲突启发式算法</a>。例如，如果优先级较低的清单只是包含一个额外的属性，构建就会失败（尽管默认行为是将该额外属性添加到合并后的清单中）。</p>
+<p>低优先级清单：</p>
+<p><activity android:name="com.example.ActivityOne"    android:windowSoftInputMode="stateUnchanged">    <intent-filter>        <action android:name="android.intent.action.SEND" />        <category android:name="android.intent.category.DEFAULT" />    </intent-filter><br></activity>  </p>
+<p>高优先级清单：</p>
+<p>&lt;activity android:name&#x3D;”com.example.ActivityOne”    android:screenOrientation&#x3D;”portrait”    **tools:node&#x3D;”strict”**&gt;<br></activity>  </p>
+<p><strong>这会导致清单合并错误</strong>。在严格模式下，这两个清单元素不能有任何不同。因此，您必须应用其他合并规则标记解决这些差异。（通常，这两个元素会正常合并在一起，如上面的 <code>tools:node=&quot;merge&quot;</code> 示例中所示。）</p>
+<h3 id="属性标记"><a href="#属性标记" class="headerlink" title="属性标记"></a>属性标记</h3><p>如需只对清单标记中的特定属性应用合并规则，请使用以下属性。每个属性可接受一个或多个属性名称（包括属性命名空间），属性名称之间用英文逗号分隔。</p>
+<p><code>tools:remove=&quot;attr, ...&quot;</code></p>
+<p>从合并后的清单中移除指定属性。虽然您似乎只需要删除这些属性即可，但如果优先级较低的清单文件包含这些属性，而您想确保它们不会被纳入合并后的清单，则必须使用此属性。</p>
+<p>低优先级清单：</p>
+<p><activity android:name="com.example.ActivityOne"    android:windowSoftInputMode="stateUnchanged">  </p>
+<p>高优先级清单：</p>
+<p>&lt;activity android:name&#x3D;”com.example.ActivityOne”    android:screenOrientation&#x3D;”portrait”    **tools:remove&#x3D;”android:windowSoftInputMode”**&gt;  </p>
+<p>合并后的清单结果：</p>
+<p><activity android:name="com.example.ActivityOne"    android:screenOrientation="portrait">  </p>
+<p><code>tools:replace=&quot;attr, ...&quot;</code></p>
+<p>将优先级较低的清单中的指定属性替换为此清单中的属性。换句话说，始终保留优先级较高的清单中的值。</p>
+<p>低优先级清单：</p>
+<p><activity android:name="com.example.ActivityOne"    android:theme="@oldtheme"    android:exported="false"    android:windowSoftInputMode="stateUnchanged">  </p>
+<p>高优先级清单：</p>
+<p>&lt;activity android:name&#x3D;”com.example.ActivityOne”    android:theme&#x3D;”@newtheme”    android:exported&#x3D;”true”    android:screenOrientation&#x3D;”portrait”    **tools:replace&#x3D;”android:theme,android:exported”**&gt;  </p>
+<p>合并后的清单结果：</p>
+<p><activity android:name="com.example.ActivityOne"    android:theme="@newtheme"    android:exported="true"    android:screenOrientation="portrait"    android:windowSoftInputMode="stateUnchanged">  </p>
+<p><code>tools:strict=&quot;attr, ...&quot;</code></p>
+<p>每当这些属性在优先级较低的清单中与在优先级较高的清单中不完全匹配时，都会导致构建失败。<strong>这是所有属性的默认行为</strong>，但具有特殊行为的属性除外，如<a target="_blank" rel="noopener" href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn#merge_conflict_heuristics">合并冲突启发法</a>中所述。</p>
+<p>低优先级清单：</p>
+<p><activity android:name="com.example.ActivityOne"    android:screenOrientation="landscape"><br></activity>  </p>
+<p>高优先级清单：</p>
+<p>&lt;activity android:name&#x3D;”com.example.ActivityOne”    android:screenOrientation&#x3D;”portrait”    **tools:strict&#x3D;”android:screenOrientation”**&gt;<br></activity>  </p>
+<p><strong>这会导致清单合并错误</strong>。您必须应用其他合并规则标记解决冲突。（切记：这是默认行为，因此如果您移除 <code>tools:strict=&quot;screenOrientation&quot;</code>，上面的示例将具有相同的结果。）</p>
+<p>您也可以对一个元素应用多个标记，如下所示。</p>
+<p>低优先级清单：</p>
+<p><activity android:name="com.example.ActivityOne"    android:theme="@oldtheme"    android:exported="false"    android:allowTaskReparenting="true"    android:windowSoftInputMode="stateUnchanged">  </p>
+<p>高优先级清单：</p>
+<p>&lt;activity android:name&#x3D;”com.example.ActivityOne”    android:theme&#x3D;”@newtheme”    android:exported&#x3D;”true”    android:screenOrientation&#x3D;”portrait”    **tools:replace&#x3D;”android:theme,android:exported”**    **tools:remove&#x3D;”android:windowSoftInputMode”**&gt;  </p>
+<p>合并后的清单结果：</p>
+<p><activity android:name="com.example.ActivityOne"    android:theme="@newtheme"    android:exported="true"    android:allowTaskReparenting="true"    android:screenOrientation="portrait"></p>
+<h2 id="合并策略"><a href="#合并策略" class="headerlink" title="合并策略"></a>合并策略</h2><p>清单合并工具可以在逻辑上将一个清单文件中的每个 XML 元素与另一个文件中的对应元素相匹配。合并工具会使用“匹配键”匹配每个元素，匹配键可以是唯一的属性值（如 <code>android:name</code>），也可以是标记本身的自然唯一性（例如，只能有一个 <code>&lt;supports-screen&gt;</code> 元素）。如果两个清单具有相同的 XML 元素，则该工具会采用三种合并政策中的一种，将这两个元素合并在一起：</p>
+<h3 id="合并"><a href="#合并" class="headerlink" title="合并"></a>合并</h3><p>将所有没有冲突的属性组合到同一标记中，并按各自的合并政策合并子元素。如果任何属性相互冲突，则使用<a target="_blank" rel="noopener" href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn#merge_rule_markers">合并规则标记</a>将它们合并在一起。</p>
+<h3 id="仅合并子元素"><a href="#仅合并子元素" class="headerlink" title="仅合并子元素"></a>仅合并子元素</h3><p>不组合或合并属性（仅保留优先级最高的清单文件提供的属性），并按各自的合并政策合并子元素。</p>
+<h3 id="保留"><a href="#保留" class="headerlink" title="保留"></a>保留</h3><p>将元素“按原样”保留，并将其添加到合并后的文件中的共同父元素中。只有在可以接受同一元素有多个声明时，才会采用此政策。<br>表 3 列出了每种元素类型、所采用的合并政策类型，以及用于确定两个清单之间元素匹配的键。<br><strong>表 3.</strong> 清单元素合并政策和匹配键</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>合并政策</th>
+<th>匹配键</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;action&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;activity&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;application&gt;</code></td>
+<td>合并</td>
+<td>每个 <code>&lt;manifest&gt;</code> 只有一个</td>
+</tr>
+<tr>
+<td><code>&lt;category&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;data&gt;</code></td>
+<td>合并</td>
+<td>每个 <code>&lt;intent-filter&gt;</code> 只有一个</td>
+</tr>
+<tr>
+<td><code>&lt;grant-uri-permission&gt;</code></td>
+<td>合并</td>
+<td>每个 <code>&lt;provider&gt;</code> 只有一个</td>
+</tr>
+<tr>
+<td><code>&lt;instrumentation&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;intent-filter&gt;</code></td>
+<td>保留</td>
+<td>不匹配；允许父元素内的多个声明</td>
+</tr>
+<tr>
+<td><code>&lt;manifest&gt;</code></td>
+<td>仅合并子元素</td>
+<td>每个文件只有一个</td>
+</tr>
+<tr>
+<td><code>&lt;meta-data&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;path-permission&gt;</code></td>
+<td>合并</td>
+<td>每个 <code>&lt;provider&gt;</code> 只有一个</td>
+</tr>
+<tr>
+<td><code>&lt;permission-group&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;permission&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;permission-tree&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;provider&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;receiver&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;screen&gt;</code></td>
+<td>合并</td>
+<td><code>android:screenSize</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;service&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;supports-gl-texture&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;supports-screen&gt;</code></td>
+<td>合并</td>
+<td>每个 <code>&lt;manifest&gt;</code> 只有一个</td>
+</tr>
+<tr>
+<td><code>&lt;uses-configuration&gt;</code></td>
+<td>合并</td>
+<td>每个 <code>&lt;manifest&gt;</code> 只有一个</td>
+</tr>
+<tr>
+<td><code>&lt;uses-feature&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性（如果不存在，则使用 <code>android:glEsVersion</code> 属性）</td>
+</tr>
+<tr>
+<td><code>&lt;uses-library&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;uses-permission&gt;</code></td>
+<td>合并</td>
+<td><code>android:name</code> 属性</td>
+</tr>
+<tr>
+<td><code>&lt;uses-sdk&gt;</code></td>
+<td>合并</td>
+<td>每个 <code>&lt;manifest&gt;</code> 只有一个</td>
+</tr>
+<tr>
+<td>自定义元素</td>
+<td>合并</td>
+<td>不匹配；合并工具并不知晓这些元素，因此它们始终包含在合并后的清单中</td>
+</tr>
+</tbody></table>
+<p>参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844904074282811399">Android构建–资源文件合并</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn#appendix_merge_policies">合并清单文件</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io">BravestSnail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io/2025/06/04/note/Gradle/Android%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E5%90%88%E5%B9%B6/">https://bravestsnail.github.io/2025/06/04/note/Gradle/Android%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E5%90%88%E5%B9%B6/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://bravestsnail.github.io" target="_blank">BravestSnail's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/06/04/note/Java%E5%B9%B6%E5%8F%91/" title="Java并发"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Java并发</div></div><div class="info-2"><div class="info-item-1">Java内存模型Java内存模型规定了所有的变量都存储在主内存（Main Memory）中（此处的主内存与介绍物理 硬件时提到的主内存名字一样，两者也可以类比，但物理上它仅是虚拟机内存的一部分）。每条线程 还有自己的工作内存（Working Memory，可与前面讲的处理器高速缓存类比），线程的工作内存中保存了被该线程使用的变量的主内存副本，线程对变量的所有操作（读取、赋值等）都必须在工作内 存中进行，而不能直接读写主内存中的数据。不同的线程之间也无法直接访问对方工作内存中的变 量，线程间变量值的传递均需要通过主内存来完成，![[Pasted image 20230520212252.png]] volatile关键字特性 保证此变量对所有线程的可见性，这里的“可见性”是指当一条线程修改了这个变量的值，新值对于其他线程来说是可以立即得知的。 禁止指令重排序优化  并发下的问题以下的代码，因为Java中运算符并非原子操作导致volatile变量在并发下发出现问题。 123456789101112131415161718192021222324252627282930/** *...</div></div></div></a><a class="pagination-related" href="/2025/06/04/note/Gradle/Gradle%E5%85%A5%E9%97%A8/" title="Gradle入门"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Gradle入门</div></div><div class="info-2"><div class="info-item-1"> Gradle基础 Gradle核心模型 Gradle依赖管理 AGP的基础配置及多渠道打包[^AGP] AGP的高级配置 MultiDex打包和Maven发布 APT自动化代码[^APT] APT注解处理器实现Router APT注解-提升   组件化 进阶KSPKSP官方文档Gradle官方文档    [^AGP]: 全称Android Gradle Plugin，即Android官方开发的Gradle插件。[^APT]: 全称Annotation Processing Tool, 即注解处理器，是一种处理注解的工具。 </div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">78</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%96%87%E4%BB%B6%E6%98%AF%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">什么文件是资源文件？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9C%80%E8%A6%81%E5%90%88%E5%B9%B6%E7%9A%84%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E6%9D%A5%E6%BA%90%E6%98%AF%E5%93%AA%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">需要合并的资源文件来源是哪？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%90%88%E5%B9%B6%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">为什么要合并？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%90%88%E5%B9%B6%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">如何合并？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%88%E5%B9%B6-assets%E7%9B%AE%E5%BD%95"><span class="toc-number">4.1.</span> <span class="toc-text">合并&#x2F;assets目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%88%E5%B9%B6-res%E7%9B%AE%E5%BD%95"><span class="toc-number">4.2.</span> <span class="toc-text">合并&#x2F;res目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Manifest%E5%90%88%E5%B9%B6"><span class="toc-number">4.3.</span> <span class="toc-text">Manifest合并</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E8%A7%84%E5%88%99%E6%A0%87%E8%AE%B0"><span class="toc-number">5.</span> <span class="toc-text">合并规则标记</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8A%82%E7%82%B9%E6%A0%87%E8%AE%B0"><span class="toc-number">5.1.</span> <span class="toc-text">节点标记</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%9E%E6%80%A7%E6%A0%87%E8%AE%B0"><span class="toc-number">5.2.</span> <span class="toc-text">属性标记</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E7%AD%96%E7%95%A5"><span class="toc-number">6.</span> <span class="toc-text">合并策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%88%E5%B9%B6"><span class="toc-number">6.1.</span> <span class="toc-text">合并</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%85%E5%90%88%E5%B9%B6%E5%AD%90%E5%85%83%E7%B4%A0"><span class="toc-number">6.2.</span> <span class="toc-text">仅合并子元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%9D%E7%95%99"><span class="toc-number">6.3.</span> <span class="toc-text">保留</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

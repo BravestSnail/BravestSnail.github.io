@@ -1,0 +1,283 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="BravestSnail&#39;s Blog">
+<meta property="og:url" content="https://bravestsnail.github.io/page/2/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/page/2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'BravestSnail\'s Blog',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a></span><div id="menus"></div></nav><div id="site-info"><h1 id="site-title">BravestSnail's Blog</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/IO%E6%A8%A1%E5%9E%8B/" title="IO模型">IO模型</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">IO模型的发展历程I&#x2F;O模型指的是程序与输入输出设备之间交互的方式。下面是I&#x2F;O模型的发展历程：  阻塞式I&#x2F;O模型（Blocking I&#x2F;O Model）：在此模型中，当一个I&#x2F;O操作被执行时，进程会阻塞，直到该操作完成为止。这种模型简单易用，但是效率较低，因为进程会一直等待操作完成，期间不能进行其他工作。 非阻塞式I&#x2F;O模型（Non-Blocking I&#x2F;O Model）：在此模型中，当一个I&#x2F;O操作被执行时，进程不会阻塞，而是立即返回，并在后续时间内轮询查看操作是否已经完成。这种模型相对于阻塞式I&#x2F;O模型来说效率更高，但需要轮询查看操作状态，会增加CPU的负担。 I&#x2F;O复用模型（I&#x2F;O Multiplexing...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/Jackson%E6%90%AD%E9%85%8Ddata%20class%E4%BD%BF%E7%94%A8%E7%9A%84%E9%97%AE%E9%A2%98/" title="Jackson搭配data class使用的问题">Jackson搭配data class使用的问题</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">有这样一个Task数据类： 1234567891011data class Task(      val id: Int = -1,      val userId: Int,      val start: LatLonPoint,      val end: LatLonPoint,      val completed: LatLonPoint,      val schedule: Float,      val isAward: Int,      val integral: Int,      val tripMode: String  ) 由于kotlin会为这个类生产getter、setter方法。 12345678910111213141516171819202122232425262728293031323334public final class Task &#123;   private final int id;   private final int userId;   private final float schedule;   private...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/Java%E5%B9%B6%E5%8F%91/" title="Java并发">Java并发</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">Java内存模型Java内存模型规定了所有的变量都存储在主内存（Main Memory）中（此处的主内存与介绍物理 硬件时提到的主内存名字一样，两者也可以类比，但物理上它仅是虚拟机内存的一部分）。每条线程 还有自己的工作内存（Working Memory，可与前面讲的处理器高速缓存类比），线程的工作内存中保存了被该线程使用的变量的主内存副本，线程对变量的所有操作（读取、赋值等）都必须在工作内 存中进行，而不能直接读写主内存中的数据。不同的线程之间也无法直接访问对方工作内存中的变 量，线程间变量值的传递均需要通过主内存来完成，![[Pasted image 20230520212252.png]] volatile关键字特性 保证此变量对所有线程的可见性，这里的“可见性”是指当一条线程修改了这个变量的值，新值对于其他线程来说是可以立即得知的。 禁止指令重排序优化  并发下的问题以下的代码，因为Java中运算符并非原子操作导致volatile变量在并发下发出现问题。 123456789101112131415161718192021222324252627282930/** *...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/Gradle/Android%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E5%90%88%E5%B9%B6/" title="Android资源文件合并">Android资源文件合并</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">什么文件是资源文件？ /res目录下的所有文件， /assets目录 Manifest文件  需要合并的资源文件来源是哪？通常apk中的资源来源有3个，具体可以参考官网：  主资源(main source set)：比如src/main/res 编译变量(Build variant source set): 比如src/demoDebug/res 库文件依赖(libraries): 也就是我们引进的aar。  为什么要合并？因为文件冲突了所以要合并。 那么随之而来的问题是系统如何唯一表示一个资源文件？相同resource type(anim&#x2F;drawable&#x2F;string等)和相同resource qualifier(比如hdpi,...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/Gradle/Gradle%E5%85%A5%E9%97%A8/" title="Gradle入门">Gradle入门</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content"> Gradle基础 Gradle核心模型 Gradle依赖管理 AGP的基础配置及多渠道打包[^AGP] AGP的高级配置 MultiDex打包和Maven发布 APT自动化代码[^APT] APT注解处理器实现Router APT注解-提升   组件化 进阶KSPKSP官方文档Gradle官方文档    [^AGP]: 全称Android Gradle Plugin，即Android官方开发的Gradle插件。[^APT]: 全称Annotation Processing Tool, 即注解处理器，是一种处理注解的工具。 </div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/Gradle/Gradle%E7%9A%84%E6%9E%84%E5%BB%BA/" title="Gradle的构建">Gradle的构建</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">Gradle Task GraphsGradle在执行任务之前，会先构建任务图（有向无环图）。因此Gradle会跳过不属于当前构建的任务。 Build PhasesGradle构建分为三个阶段：初始化、配置、执行阶段。 Initialization 查询settings文件。 计算setting，确定那些项目和builds参与构建。 为每一个项目创建一个Project。  Configuration 计算参与构建的每个项目的bulid scripts。    为所有要求的任务创建一个任务图。  Execution 按照任务依赖的顺序安排和执行任务。  Initialization查找项目的settings文件，计算settings文件。在这个期间Gradle会将库添加到build...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/Java%E4%BC%98%E5%8C%96/%E6%96%B9%E6%B3%95%E5%86%85%E8%81%94/" title="方法内联">方法内联</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">定义方法内联（Method inlining）是一种编译器优化技术，它将函数调用直接替换为函数体中的代码。这样可以减少函数调用的开销，提高程序的执行效率。在方法内联的过程中，编译器会将被调用的函数的代码复制到调用点处，并对代码进行必要的修改以确保正确性。 适用范围按照经典编译原理的优化理论，大多数Java方法都无法进行内联。因为因为大多Java方法都是虚方法，只有静态方法、私有方法、实例构造方法、父类方法、final修饰的编译时确定的方法等方法才能进行内联，其余方法由于是虚方法，只有运行时才能确定方法的多态选择，所以无法进行内联。 解决方案引入类型继承关系分析（Class Hierarchy Analysis，CHA）用于确定已经加载的类中，某个接口是否有多余一种的实现、某个类是否存在子类、某个子类是否重写父类的某个虚方法等信息。 守护内联（Guarded Inlining）如果在内联碰到虚方法，会向CHA查询此方法在当前状态下是否有多个目标版本可供选择，如果只有一个版本，可以对方法进行内联，这种内联称为守护内联。若加载到新的类型从而改变CHA的结论，将执行退路（Slow...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/Java%E4%BC%98%E5%8C%96/%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90/" title="逃逸分析">逃逸分析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">基本原理分析对象动态作用域，当一个对象在方法里面被定义后，它可能被外部方法所引用，例如作为调用参数传递到其他方法中，这种称为方法逃逸；甚至还有可能被外部线程访 问到，譬如赋值给可以在其他线程中访问的实例变量，这种称为线程逃逸；从不逃逸、方法逃逸到线程逃逸，称为对象由低到高的不同逃逸程度。 栈上分配如果确定一个对象不会逃逸出线程之外，可以对这个对象进行栈上分配。当然，这里给您提供另一个使用Java栈上分配的示例： 假设我们有一个方法，它需要创建大量的String对象并对它们进行操作。在常规情况下，每次创建String对象时都会在堆上分配内存，这可能会导致性能问题。 为了避免这种情况，我们可以使用Java栈上分配技术来优化代码。具体做法是将StringBuilder对象声明为局部变量，并在该对象上执行操作，最终将其转换为String对象并返回。以下是示例代码： 1234567public String buildString(int count) &#123;    StringBuilder builder = new StringBuilder();    for (int i...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/Java%E4%BC%98%E5%8C%96/%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4/" title="公共子表达式消除">公共子表达式消除</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">公共子表达式消除是一项非常经典的、普遍应用于各种编译器的优化技术，它的含义是：如果一 个表达式E之前已经被计算过了，并且从先前的计算到现在E中所有变量的值都没有发生变化，那么E 的这次出现就称为公共子表达式。对于这种表达式，没有必要花时间再对它重新进行计算，只需要直 接用前面计算过的表达式结果代替E。如果这种优化仅限于程序基本块内，便可称为局部公共子表达 式消除（Local Common Subexpression Elimination），如果这种优化的范围涵盖了多个基本块，那就称 为全局公共子表达式消除（Global Common Subexpression Elimination）。下面举个简单的例子来说明它 的优化过程，假设存在如下代码： 1int d = (c * b) * 12 + a + (a + b * c); 当这段代码进入虚拟机即时编译器后，它将进行如下优化：编译器检测到c*b与b*c是一样的表达 式，而且在计算期间b与c的值是不变的。因此这条表达式就可能被视为： 1int d = E * 12 + a + (a +...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/06/04/note/Android/ota/OTA%E5%BC%BA%E5%88%B6%E6%9B%B4%E6%96%B0%E8%AE%BE%E8%AE%A1/" title="OTA强制更新设计">OTA强制更新设计</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="content">整体流程 flowchart TD  otaUpdated[OTA更新完成] --> isNeedPerformAction{是否需要执行Action} isNeedPerformAction ---> |No| E[End] isNeedPerformAction --> |Yes| performAction[执行动作] performAction --> isPerformFinish{是否执行完成} isPerformFinish --> |No| performAction isPerformFinish --> |Yes| E  </div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#content-inner">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/#content-inner">8</a><a class="extend next" rel="next" href="/page/3/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">78</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/note/"><span class="card-category-list-name">note</span><span class="card-category-list-count">7</span></a></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/SharedPreferences/" style="font-size: 1.1em; color: #999">SharedPreferences</a> <a href="/tags/%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86/" style="font-size: 1.1em; color: #999">事件处理</a> <a href="/tags/Kotlin/" style="font-size: 1.2em; color: #999da3">Kotlin</a> <a href="/tags/%E5%8A%A8%E7%94%BB/" style="font-size: 1.1em; color: #999">动画</a> <a href="/tags/Handler/" style="font-size: 1.1em; color: #999">Handler</a> <a href="/tags/%E7%BB%98%E5%88%B6%E6%B5%81%E7%A8%8B/" style="font-size: 1.1em; color: #999">绘制流程</a> <a href="/tags/Gridea/" style="font-size: 1.1em; color: #999">Gridea</a> <a href="/tags/View/" style="font-size: 1.3em; color: #99a1ac">View</a> <a href="/tags/Accompanist/" style="font-size: 1.1em; color: #999">Accompanist</a> <a href="/tags/%E6%89%8B%E5%8A%BF/" style="font-size: 1.1em; color: #999">手势</a> <a href="/tags/Android/" style="font-size: 1.5em; color: #99a9bf">Android</a> <a href="/tags/Java%E5%AD%A6%E4%B9%A0/" style="font-size: 1.1em; color: #999">Java学习</a> <a href="/tags/%E9%97%AE%E9%A2%98/" style="font-size: 1.1em; color: #999">问题</a> <a href="/tags/LiveData/" style="font-size: 1.2em; color: #999da3">LiveData</a> <a href="/tags/Activity/" style="font-size: 1.1em; color: #999">Activity</a> <a href="/tags/Paging3/" style="font-size: 1.1em; color: #999">Paging3</a> <a href="/tags/Compose/" style="font-size: 1.4em; color: #99a5b6">Compose</a> <a href="/tags/Jetpack/" style="font-size: 1.2em; color: #999da3">Jetpack</a> <a href="/tags/Java/" style="font-size: 1.1em; color: #999">Java</a> <a href="/tags/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%B8%83%E5%B1%80/" style="font-size: 1.1em; color: #999">自定义布局</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      <a class="card-more-btn" href="/archives/"
+            title="查看更多">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/06/">
+            <span class="card-archive-list-date">
+              六月 2025
+            </span>
+            <span class="card-archive-list-count">56</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/05/">
+            <span class="card-archive-list-date">
+              五月 2025
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2024/05/">
+            <span class="card-archive-list-date">
+              五月 2024
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/03/">
+            <span class="card-archive-list-date">
+              三月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/02/">
+            <span class="card-archive-list-date">
+              二月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/09/">
+            <span class="card-archive-list-date">
+              九月 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/08/">
+            <span class="card-archive-list-date">
+              八月 2022
+            </span>
+            <span class="card-archive-list-count">5</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/04/">
+            <span class="card-archive-list-date">
+              四月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">78</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-06-04T12:46:53.395Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>IO模型 | BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="IO模型的发展历程I&#x2F;O模型指的是程序与输入输出设备之间交互的方式。下面是I&#x2F;O模型的发展历程：  阻塞式I&#x2F;O模型（Blocking I&#x2F;O Model）：在此模型中，当一个I&#x2F;O操作被执行时，进程会阻塞，直到该操作完成为止。这种模型简单易用，但是效率较低，因为进程会一直等待操作完成，期间不能进行其他工作。 非阻塞式I&#x2F;O模型（Non-">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IO模型">
+<meta property="og:url" content="https://bravestsnail.github.io/2025/06/04/note/IO%E6%A8%A1%E5%9E%8B/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:description" content="IO模型的发展历程I&#x2F;O模型指的是程序与输入输出设备之间交互的方式。下面是I&#x2F;O模型的发展历程：  阻塞式I&#x2F;O模型（Blocking I&#x2F;O Model）：在此模型中，当一个I&#x2F;O操作被执行时，进程会阻塞，直到该操作完成为止。这种模型简单易用，但是效率较低，因为进程会一直等待操作完成，期间不能进行其他工作。 非阻塞式I&#x2F;O模型（Non-">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:published_time" content="2025-06-04T12:46:35.126Z">
+<meta property="article:modified_time" content="2025-06-04T12:46:35.126Z">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "IO模型",
+  "url": "https://bravestsnail.github.io/2025/06/04/note/IO%E6%A8%A1%E5%9E%8B/",
+  "image": "https://bravestsnail.github.io/images/avatar.png",
+  "datePublished": "2025-06-04T12:46:35.126Z",
+  "dateModified": "2025-06-04T12:46:35.126Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "BravestSnail",
+      "url": "https://bravestsnail.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/2025/06/04/note/IO%E6%A8%A1%E5%9E%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'IO模型',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">IO模型</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">IO模型</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-04T12:46:35.126Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-04T12:46:35.126Z" title="更新于 2025-06-04 20:46:35">2025-06-04</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="IO模型的发展历程"><a href="#IO模型的发展历程" class="headerlink" title="IO模型的发展历程"></a>IO模型的发展历程</h1><p>I&#x2F;O模型指的是程序与输入输出设备之间交互的方式。下面是I&#x2F;O模型的发展历程：</p>
+<ol>
+<li>阻塞式I&#x2F;O模型（Blocking I&#x2F;O Model）：在此模型中，当一个I&#x2F;O操作被执行时，进程会阻塞，直到该操作完成为止。这种模型简单易用，但是效率较低，因为进程会一直等待操作完成，期间不能进行其他工作。</li>
+<li>非阻塞式I&#x2F;O模型（Non-Blocking I&#x2F;O Model）：在此模型中，当一个I&#x2F;O操作被执行时，进程不会阻塞，而是立即返回，并在后续时间内轮询查看操作是否已经完成。这种模型相对于阻塞式I&#x2F;O模型来说效率更高，但需要轮询查看操作状态，会增加CPU的负担。</li>
+<li>I&#x2F;O复用模型（I&#x2F;O Multiplexing Model）：在此模型中，使用select、poll、epoll等方法，可以同时监测多个文件描述符上的I&#x2F;O事件，从而实现非阻塞的I&#x2F;O操作。这种模型通过将多个文件描述符注册到同一个轮询器进行监听，减少了轮询的开销，提高了效率。</li>
+<li>信号驱动式I&#x2F;O模型（Signal Driven I&#x2F;O Model）：在此模型中，当一个I&#x2F;O操作完成时，系统会向进程发送一个信号，进程接收到信号后会进行I&#x2F;O操作的处理。这种模型相对于I&#x2F;O复用模型来说，减少了轮询的开销，但是需要考虑一些额外的复杂性，如信号与进程之间的交互。</li>
+<li>异步I&#x2F;O模型（Asynchronous I&#x2F;O Model）：在此模型中，当一个I&#x2F;O操作被提交时，进程可以继续执行其他操作，而不需要等待I&#x2F;O操作完成。当I&#x2F;O操作完成后，系统会向进程发送一个通知，进程可以在此时处理相关的数据。这种模型相对于其它模型来说，效率更高，并且可以支持更高并发量。</li>
+</ol>
+<h1 id="阻塞式IO模型"><a href="#阻塞式IO模型" class="headerlink" title="阻塞式IO模型"></a>阻塞式IO模型</h1><h2 id="单线程阻塞IO模型"><a href="#单线程阻塞IO模型" class="headerlink" title="单线程阻塞IO模型"></a>单线程阻塞IO模型</h2><p>下面看一个阻塞式IO模型的Python代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建socket对象</span></span><br><span class="line">server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绑定IP地址和端口号</span></span><br><span class="line">server_address = (<span class="string">&#x27;localhost&#x27;</span>, <span class="number">8000</span>)</span><br><span class="line">server_socket.bind(server_address)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 监听socket连接</span></span><br><span class="line">server_socket.listen(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;等待客户端连接...&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="comment"># 等待客户端连接,此处会阻塞</span></span><br><span class="line">    client_socket, client_address = server_socket.accept()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;收到来自 &#123;&#125; 的连接&#x27;</span>.<span class="built_in">format</span>(client_address))</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="comment"># 接收来自客户端的数据，此处会阻塞</span></span><br><span class="line">            data = client_socket.recv(<span class="number">1024</span>)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> data:</span><br><span class="line">                <span class="comment"># 向客户端发送响应数据</span></span><br><span class="line">                client_socket.sendall(<span class="string">b&#x27;Hello, &#x27;</span> + data)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="comment"># 客户端关闭了连接</span></span><br><span class="line">                <span class="built_in">print</span>(<span class="string">&#x27;来自 &#123;&#125; 的连接已关闭&#x27;</span>.<span class="built_in">format</span>(client_address))</span><br><span class="line">                client_socket.close()</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="comment"># 出现异常，关闭连接</span></span><br><span class="line">            <span class="built_in">print</span>(<span class="string">&#x27;出现异常：&#123;&#125;&#x27;</span>.<span class="built_in">format</span>(<span class="built_in">str</span>(e)))</span><br><span class="line">            client_socket.close()</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 关闭服务器socket连接</span></span><br><span class="line">server_socket.close()</span><br></pre></td></tr></table></figure>
+<p>这个示例代码创建了一个TCP服务器，监听在本地8000端口上。上面有两处标记阻塞的地方。当代码运行到这两个地方后，会持续的等待数据，直到数据准备好，程序才会进行下一步。可见，这样做的效率并不高。</p>
+<h2 id="多线程阻塞IO模型"><a href="#多线程阻塞IO模型" class="headerlink" title="多线程阻塞IO模型"></a>多线程阻塞IO模型</h2><p>下面是一个使用Python实现阻塞式I&#x2F;O的示例，同时采用线程来实现并发：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">handle_client</span>(<span class="params">client_socket</span>):</span><br><span class="line">    <span class="comment"># 接收数据</span></span><br><span class="line">    request = client_socket.recv(<span class="number">1024</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;Received: <span class="subst">&#123;request.decode()&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 发送响应</span></span><br><span class="line">    response = <span class="string">&quot;HTTP/1.1 200 OK\nContent-Type: text/html\n\nHello World!&quot;</span></span><br><span class="line">    client_socket.send(response.encode())</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 关闭客户端socket连接</span></span><br><span class="line">    client_socket.close()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建socket对象和地址</span></span><br><span class="line">server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">address = (<span class="string">&#x27;localhost&#x27;</span>, <span class="number">8000</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 绑定socket并开始监听</span></span><br><span class="line">server_socket.bind(address)</span><br><span class="line">server_socket.listen(<span class="number">5</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Listening on <span class="subst">&#123;address&#125;</span>...&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="comment"># 等待客户端连接</span></span><br><span class="line">    client_socket, _ = server_socket.accept()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Connected by&quot;</span>, _)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 创建新线程处理客户端请求</span></span><br><span class="line">    client_thread = threading.Thread(target=handle_client, args=(client_socket,))</span><br><span class="line">    client_thread.start()</span><br></pre></td></tr></table></figure>
+<p>在这个示例中，我们创建了一个阻塞式的socket对象，并绑定到指定的地址上。接着，我们进入一个循环，不断等待客户端连接。当有客户端连接时，我们创建一个新的线程来处理客户端请求，从而实现并发。在handle_client()函数中，我们首先接收客户端发送的数据，然后构造一个HTTP响应并发送给客户端。最后，我们关闭客户端socket连接。<br>在这里我们通过线程实现了并发，但是实际上，并没有解决代码阻塞的问题，只是将阻塞等待的时间转移到了子线程当中。</p>
+<h1 id="非阻塞式I-O模型"><a href="#非阻塞式I-O模型" class="headerlink" title="非阻塞式I&#x2F;O模型"></a>非阻塞式I&#x2F;O模型</h1><p>非阻塞式I&#x2F;O模型是一种能够在一个线程中处理多个I&#x2F;O事件的方式，可以让程序在等待I&#x2F;O完成时不会被阻塞。下面是一个使用Python实现非阻塞式I&#x2F;O的示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line">server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="number">1</span>)</span><br><span class="line">server_address = (<span class="string">&#x27;localhost&#x27;</span>, <span class="number">8080</span>)</span><br><span class="line">server_socket.bind(server_address)</span><br><span class="line">server_socket.listen(<span class="number">5</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># 没有接受到数据，出让执行权</span></span><br><span class="line">        <span class="comment"># 接收到数据，执行接受TCP数据包</span></span><br><span class="line">        conn,addr = server_socket.accept()</span><br><span class="line">        <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">                <span class="comment"># 没有接受到数据，出让执行权</span></span><br><span class="line">                data = conn.recv(<span class="number">1024</span>)</span><br><span class="line">                conn.send(data)</span><br><span class="line">            <span class="keyword">except</span> BlockingIOError:</span><br><span class="line">                <span class="keyword">continue</span></span><br><span class="line">    <span class="keyword">except</span> BlockingIOError:</span><br><span class="line">        <span class="keyword">continue</span></span><br></pre></td></tr></table></figure>
+<p>上面这个模型可以看出，代码是没有阻塞过程的，一直在轮询是否接受到数据，效率是非常高的。但是缺点也很明显，哪怕一直都没有IO数据，程序也一直在空转，浪费了许多的CPU资源。</p>
+<h1 id="I-O多路复用模型"><a href="#I-O多路复用模型" class="headerlink" title="I&#x2F;O多路复用模型"></a>I&#x2F;O多路复用模型</h1><p>下面是一个使用Python的select模块实现I&#x2F;O多路复用的TCP服务器示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">import</span> select</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建TCP服务器套接字并绑定端口</span></span><br><span class="line">server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="number">1</span>)</span><br><span class="line">server_socket.bind((<span class="string">&#x27;localhost&#x27;</span>, <span class="number">8888</span>))</span><br><span class="line">server_socket.listen(<span class="number">10</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将服务器套接字加入到select监听列表中</span></span><br><span class="line">inputs = [server_socket]</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="comment"># 使用select函数进行监听，阻塞直到有socket对象可读或可写</span></span><br><span class="line">    readable, writable, exceptional = select.select(inputs, [], [])</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 遍历所有可读取的socket对象</span></span><br><span class="line">    <span class="keyword">for</span> sock <span class="keyword">in</span> readable:</span><br><span class="line">        <span class="comment"># 如果是服务器套接字，则表示有客户端请求连接</span></span><br><span class="line">        <span class="keyword">if</span> sock == server_socket:</span><br><span class="line">            client_socket, address = server_socket.accept()</span><br><span class="line">            inputs.append(client_socket)</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;New connection from <span class="subst">&#123;address&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="comment"># 否则为已连接客户端发来数据</span></span><br><span class="line">            data = sock.recv(<span class="number">1024</span>)</span><br><span class="line">            <span class="keyword">if</span> data:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&quot;Received \&quot;<span class="subst">&#123;data.decode().strip()&#125;</span>\&quot; from <span class="subst">&#123;sock.getpeername()&#125;</span>&quot;</span>)</span><br><span class="line">                sock.sendall(data)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="comment"># 如果客户端关闭了连接，则从监听列表中删除该socket对象</span></span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&quot;Client <span class="subst">&#123;sock.getpeername()&#125;</span> closed connection&quot;</span>)</span><br><span class="line">                inputs.remove(sock)</span><br><span class="line">                sock.close()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这个示例中通过select模块实现了I&#x2F;O多路复用，可以同时处理多个客户端连接请求和数据收发。每当有新的连接请求时，我们将客户端套接字加入到监听列表中，当有数据可读取时就进行处理，如果客户端关闭连接则从监听列表中删除该套接字。</p>
+<h1 id="信号驱动式I-O模型"><a href="#信号驱动式I-O模型" class="headerlink" title="信号驱动式I&#x2F;O模型"></a>信号驱动式I&#x2F;O模型</h1><p>下面是一个使用Python的select模块实现I&#x2F;O多路复用的TCP服务器示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">import</span> select</span><br><span class="line"><span class="keyword">import</span> signal</span><br><span class="line"></span><br><span class="line">HOST = <span class="string">&#x27;127.0.0.1&#x27;</span></span><br><span class="line">PORT = <span class="number">8080</span></span><br><span class="line">BACKLOG = <span class="number">5</span></span><br><span class="line"></span><br><span class="line">server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="number">1</span>)</span><br><span class="line">server_socket.bind((HOST, PORT))</span><br><span class="line">server_socket.listen(BACKLOG)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 处理SIGINT信号</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">handle_sigint</span>(<span class="params">signum, frame</span>):</span><br><span class="line">    server_socket.close()</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;Server shutting down...&quot;</span>)</span><br><span class="line">    exit(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注册SIGINT信号处理函数</span></span><br><span class="line">signal.signal(signal.SIGINT, handle_sigint)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 监听文件描述符列表</span></span><br><span class="line">inputs = [server_socket]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;Server started on <span class="subst">&#123;HOST&#125;</span>:<span class="subst">&#123;PORT&#125;</span>...&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="comment"># 使用select函数等待文件描述符就绪</span></span><br><span class="line">    readables, _, _ = select.select(inputs, [], [])</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> sock <span class="keyword">in</span> readables:</span><br><span class="line">        <span class="keyword">if</span> sock == server_socket:</span><br><span class="line">            <span class="comment"># 新连接请求</span></span><br><span class="line">            client_socket, client_address = server_socket.accept()</span><br><span class="line">            inputs.append(client_socket)</span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;New connection from <span class="subst">&#123;client_address&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="comment"># 已连接客户端发送数据</span></span><br><span class="line">            data = sock.recv(<span class="number">1024</span>)</span><br><span class="line">            <span class="keyword">if</span> data:</span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&quot;Received data from <span class="subst">&#123;sock.getpeername()&#125;</span>: <span class="subst">&#123;data.decode(<span class="string">&#x27;utf-8&#x27;</span>)&#125;</span>&quot;</span>)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="comment"># 客户端关闭连接</span></span><br><span class="line">                <span class="built_in">print</span>(<span class="string">f&quot;Client <span class="subst">&#123;sock.getpeername()&#125;</span> disconnected.&quot;</span>)</span><br><span class="line">                inputs.remove(sock)</span><br><span class="line">                sock.close()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>该示例代码中，主要使用了Python自带的socket、select和signal模块来实现信号驱动式I&#x2F;O模型的TCP服务器。在主循环中，通过select函数等待文件描述符就绪，如果是server_socket就表示有新连接请求，否则就是已连接的客户端发送数据。</p>
+<h1 id="异步I-O模型"><a href="#异步I-O模型" class="headerlink" title="异步I&#x2F;O模型"></a>异步I&#x2F;O模型</h1><p>以下是一个使用异步I&#x2F;O模型的TCP服务器示例代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"></span><br><span class="line">HOST = <span class="string">&#x27;127.0.0.1&#x27;</span></span><br><span class="line">PORT = <span class="number">8080</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 处理新连接请求</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">handle_new_client</span>(<span class="params">reader, writer</span>):</span><br><span class="line">    address = writer.get_extra_info(<span class="string">&#x27;peername&#x27;</span>)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;New connection from <span class="subst">&#123;address&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        data = <span class="keyword">await</span> reader.read(<span class="number">1024</span>)</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> data:</span><br><span class="line">            <span class="comment"># 客户端关闭连接</span></span><br><span class="line">            <span class="built_in">print</span>(<span class="string">f&quot;Client <span class="subst">&#123;address&#125;</span> disconnected.&quot;</span>)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">        message = data.decode(<span class="string">&#x27;utf-8&#x27;</span>)</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Received message from <span class="subst">&#123;address&#125;</span>: <span class="subst">&#123;message&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 响应客户端消息</span></span><br><span class="line">        response = <span class="string">f&quot;Echo: <span class="subst">&#123;message&#125;</span>&quot;</span></span><br><span class="line">        writer.write(response.encode(<span class="string">&#x27;utf-8&#x27;</span>))</span><br><span class="line">        <span class="keyword">await</span> writer.drain()</span><br><span class="line"></span><br><span class="line">    writer.close()</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    server = <span class="keyword">await</span> asyncio.start_server(handle_new_client, HOST, PORT)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">with</span> server:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Server started on <span class="subst">&#123;HOST&#125;</span>:<span class="subst">&#123;PORT&#125;</span>...&quot;</span>)</span><br><span class="line">        <span class="keyword">await</span> server.serve_forever()</span><br><span class="line"></span><br><span class="line">asyncio.run(main())</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>该示例代码中，主要使用了Python自带的asyncio模块来实现异步I&#x2F;O模型的TCP服务器。通过<code>asyncio.start_server</code>函数创建一个TCP服务器，并将<code>handle_new_client</code>作为回调函数来处理新连接请求。在<code>handle_new_client</code>中，通过<code>reader.read</code>异步读取客户端发送的数据，并使用<code>writer.write</code>异步发送响应数据。<br>在主函数<code>main</code>中，使用<code>asyncio.run</code>运行异步协程来启动服务器。当有新连接请求时，<code>handle_new_client</code>会被异步执行，不会阻塞主循环，从而实现了异步I&#x2F;O模型的TCP服务器。</p>
+<h1 id="select、poll和epoll的原理"><a href="#select、poll和epoll的原理" class="headerlink" title="select、poll和epoll的原理"></a>select、poll和epoll的原理</h1><p>select、poll和epoll都是实现I&#x2F;O多路复用的系统调用。它们的基本原理都是在内核中维护一个事件表，用于存储每个文件描述符及其所关注的事件（如可读、可写或异常条件）。应用程序可以通过这些系统调用将自己的文件描述符添加到事件表中，并等待内核通知它们哪些文件描述符已经准备好进行I&#x2F;O操作。</p>
+<p>在具体实现上，select、poll和epoll之间有一些不同之处：</p>
+<ol>
+<li>select</li>
+</ol>
+<p>在select中，应用程序通过fd_set类型的集合来指定感兴趣的文件描述符，并通过select系统调用向内核注册这些文件描述符和感兴趣的事件。当内核发现有感兴趣的事件发生时，它会修改相应的fd_set集合，以便应用程序能够知道哪些描述符已经准备好进行I&#x2F;O操作。</p>
+<p>select的实现通常使用了轮询的方式来遍历所有的文件描述符集合，并检查其中的每个文件描述符是否已经就绪。这种实现方式会导致效率低下，并且随着文件描述符数量的增加，其效率会进一步降低。</p>
+<ol start="2">
+<li>poll</li>
+</ol>
+<p>与select类似，poll也使用了一个结构体数组来存储文件描述符及其所关注的事件。与select不同的是，poll没有对集合大小进行限制，并且使用了链表来管理事件。这样，应用程序可以更方便地扩展和管理自己的文件描述符集合。</p>
+<p>poll的实现通常也是采用轮询方式遍历整个事件列表，从而判断哪些文件描述符已经准备好进行I&#x2F;O操作。这种实现方式与select相似，同样会随着文件描述符数量的增加导致效率降低。</p>
+<ol start="3">
+<li>epoll</li>
+</ol>
+<p>epoll是一种高效的I&#x2F;O多路复用机制，它通过将文件描述符添加到内核事件表中来实现对事件的监视。当一个文件描述符就绪时，内核会将其加入到一个就绪队列中，并通知应用程序进行处理。</p>
+<p>有三种工作模式：LT（Level Triggered）、ET（Edge Triggered）和ONESHOT。其中LT模式是默认模式，ET模式可以提高并发性能，ONESHOT模式可以确保每个事件只被一个线程处理。</p>
+<p>epoll的实现采用了红黑树和双向链表的数据结构。在内核中，每个文件描述符都会对应一个可读、可写或异常事件的双向链表。当一个文件描述符就绪时，它会被移动到相应的事件链表上。这种实现方式可以快速定位到就绪的文件描述符，从而提高系统的性能和可扩展性。</p>
+<p>总之，select、poll和epoll都是实现I&#x2F;O多路复用的系统调用，它们的基本原理都是在内核中维护一个事件表，并使用轮询或其他数据结构来监视文件描述符的状态。但在具体实现上有所不同，epoll因其高效性和可扩展性而成为Linux系统中最流行的I&#x2F;O多路复用机制之一。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io">BravestSnail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io/2025/06/04/note/IO%E6%A8%A1%E5%9E%8B/">https://bravestsnail.github.io/2025/06/04/note/IO%E6%A8%A1%E5%9E%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://bravestsnail.github.io" target="_blank">BravestSnail's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/06/04/note/Android/compose/%E5%9F%BA%E7%A1%80%E7%BB%84%E4%BB%B6/" title="基础组件"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">基础组件</div></div><div class="info-2"><div class="info-item-1">Button默认样式 Button的lambda块中可以传入任意的Composable组件，但一般是放一个Text在里面 123Button(onClick = &#123; println(&quot;确认onClick&quot;) &#125;) &#123;   Text(&quot;默认样式&quot;)&#125;   按钮的宽高 如果想要宽一点或高一点的Button，可以通过Modifier修改宽高，例如在Column中可以通过Modifier.fillMaxWidth()指定占满父控件，此外还可以通过 shape 参数修改Button的圆角弧度 123456789Column(horizontalAlignment = Alignment.CenterHorizontally) &#123;    Button(        onClick = &#123; println(&quot;确认onClick&quot;) &#125;,        modifier = Modifier.fillMaxWidth().padding(all = 5.dp), ...</div></div></div></a><a class="pagination-related" href="/2025/06/04/note/Jackson%E6%90%AD%E9%85%8Ddata%20class%E4%BD%BF%E7%94%A8%E7%9A%84%E9%97%AE%E9%A2%98/" title="Jackson搭配data class使用的问题"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Jackson搭配data class使用的问题</div></div><div class="info-2"><div class="info-item-1">有这样一个Task数据类： 1234567891011data class Task(      val id: Int = -1,      val userId: Int,      val start: LatLonPoint,      val end: LatLonPoint,      val completed: LatLonPoint,      val schedule: Float,      val isAward: Int,      val integral: Int,      val tripMode: String  ) 由于kotlin会为这个类生产getter、setter方法。 12345678910111213141516171819202122232425262728293031323334public final class Task &#123;   private final int id;   private final int userId;   private final float schedule;   private...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">78</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#IO%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%8F%91%E5%B1%95%E5%8E%86%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">IO模型的发展历程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%98%BB%E5%A1%9E%E5%BC%8FIO%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.</span> <span class="toc-text">阻塞式IO模型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E7%BA%BF%E7%A8%8B%E9%98%BB%E5%A1%9EIO%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.1.</span> <span class="toc-text">单线程阻塞IO模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%98%BB%E5%A1%9EIO%E6%A8%A1%E5%9E%8B"><span class="toc-number">2.2.</span> <span class="toc-text">多线程阻塞IO模型</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%9D%9E%E9%98%BB%E5%A1%9E%E5%BC%8FI-O%E6%A8%A1%E5%9E%8B"><span class="toc-number">3.</span> <span class="toc-text">非阻塞式I&#x2F;O模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#I-O%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%E6%A8%A1%E5%9E%8B"><span class="toc-number">4.</span> <span class="toc-text">I&#x2F;O多路复用模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BF%A1%E5%8F%B7%E9%A9%B1%E5%8A%A8%E5%BC%8FI-O%E6%A8%A1%E5%9E%8B"><span class="toc-number">5.</span> <span class="toc-text">信号驱动式I&#x2F;O模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%82%E6%AD%A5I-O%E6%A8%A1%E5%9E%8B"><span class="toc-number">6.</span> <span class="toc-text">异步I&#x2F;O模型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#select%E3%80%81poll%E5%92%8Cepoll%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">7.</span> <span class="toc-text">select、poll和epoll的原理</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E4%B8%8A%E4%B8%8B%E6%96%87Context/" title="上下文Context">上下文Context</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E6%B3%A8%E8%A7%A3%E5%92%8C%E6%B3%A8%E8%A7%A3%E5%A4%84%E7%90%86%E5%99%A8/" title="注解和注解处理器">注解和注解处理器</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/%E8%BF%9B%E7%A8%8B%E3%80%81%E7%BA%BF%E7%A8%8B%E3%80%81%E5%8D%8F%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/" title="进程、线程、协程的区别">进程、线程、协程的区别</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/06/04/note/kotlin/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><time datetime="2025-06-04T12:46:35.127Z" title="发表于 2025-06-04 20:46:35">2025-06-04</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
