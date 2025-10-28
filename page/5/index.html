@@ -1,0 +1,281 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="BravestSnail&#39;s Blog">
+<meta property="og:url" content="https://bravestsnail.github.io/page/5/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/page/5/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'BravestSnail\'s Blog',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">86</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/posts/"><i class="fa-fw fas fa-archive"></i><span> Posts</span></a></div><div class="menus_item"><a class="site-page" href="/learn/"><i class="fa-fw fas fa-book"></i><span> Learn</span></a></div><div class="menus_item"><a class="site-page" href="/note/"><i class="fa-fw fas fa-sticky-note"></i><span> Note</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/posts/"><i class="fa-fw fas fa-archive"></i><span> Posts</span></a></div><div class="menus_item"><a class="site-page" href="/learn/"><i class="fa-fw fas fa-book"></i><span> Learn</span></a></div><div class="menus_item"><a class="site-page" href="/note/"><i class="fa-fw fas fa-sticky-note"></i><span> Note</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">BravestSnail's Blog</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Android%2015/02%20CaptionWindowDecoration%20%E5%A4%9A%E5%B1%82%20Surface%20%E6%9E%B6%E6%9E%84%E6%B7%B1%E5%BA%A6%E5%88%86%E6%9E%90/" title="02 CaptionWindowDecoration 多层 Surface 架构深度分析">02 CaptionWindowDecoration 多层 Surface 架构深度分析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.767Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/">Framework初识</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Android-15/">Android 15</a></span></div><div class="content">概述CaptionWindowDecoration 是 Android WindowManager Shell (WMShell) 框架中的核心组件，负责为自由形态窗口提供标题栏装饰功能。它采用多层 Surface 架构来实现窗口装饰的渲染和交互，确保应用内容与装饰元素能够独立渲染、精确控制，同时保持良好的性能和用户体验。 完整多层 Surface 架构图包含应用内容的完整架构1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889909192939495┌─────────────────────────────────────────────────────────────────────────────────┐│ Display Surface (屏幕显示层)...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/BLE/Android%20BLE/" title="Android BLE">Android BLE</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.766Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/BLE/">BLE</a></span></div><div class="content">Android BLE 杂谈 主要解决方案领域 音频传输  Bluetooth®技术摒弃了耳机、耳麦、扬声器等设备上繁琐的接线，彻底改变了音频设备，永远改变了我们消费媒体和体验世界的方式。  数据传输  从家用电器和健身追踪器到健康传感器和医疗创新产品，Bluetooth®技术连接着数十亿台日常设备，并促成了无数新设备的发明。  设备网络  Bluetooth® Mesh 是创建控制、监控和自动化系统的理想选择，在这些系统中，数十、数百或数千台设备需要可靠、安全地相互通信。  位置服务  Bluetooth®技术是开发人员的首选工具，可用于创建用于兴趣点信息和物品查找的近距离解决方案以及定位系统，如用于资产跟踪的实时定位系统和用于寻路的室内定位系统。   零、基本概念 - 官方文档 GATT（Generic Attribute Profile 通用属性配置文件）  它定义了两个BLE设备互相传输数据进行通信的方法，该方法用了两个概念，Service和Characteristic。  Profile  profile...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Android%20%E6%9C%80%E8%BF%91%E4%BB%BB%E5%8A%A1/" title="Android 最近任务">Android 最近任务</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.766Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a></span></div><div class="content">获取最近任务sequenceDiagram ActivityManagerService ->> ActivityTaskManagerService: getRecentTasks ActivityTaskManagerService ->> RecentTasks: getRecentTasks RecentTasks ->> RecentTasks: loadUserRecentsLocked  RecentTasks ->> RecentTasks: loadPersistedTaskIdsForUserLocked RecentTasks ->> TaskPersister: restoreTasksForUserLocked 最近任务持久化存放目录/data/system_ce/0/recent_tasks </div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Android%20%E7%AA%97%E5%8F%A3/" title="Android 窗口">Android 窗口</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.766Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a></span></div><div class="content">classDiagram     class TaskDisplayArea  	class DisplayArea~T: WindowContainer~ 	class WindowContainer~E: WindowContainer~ 	class ConfigurationContainer~E: ConfigurationContainer~ { 		 		+ getChildCount() int 		+ getChildAt(int index) E 		+ getParent() ConfigurationContainer 	} 	TaskDisplayArea --|> DisplayArea 	DisplayArea --|> WindowContainer 	WindowContainer --|> ConfigurationContainer 	WindowToken --|> WindowContainer 	TaskFragment --|> WindowContainer 	WindowState --|>...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/learn/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="正则表达式">正则表达式</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.765Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/learn/">learn</a></span></div><div class="content">基本匹配如有一个字符串abc123dfsfsd, 正则表达式abc123。匹配结果：abc123 任意匹配., 匹配任意的字符如有字符串abc123， 正则表达式.匹配结果：a,b,c,1,2,3 特殊匹配\w, 匹配字母、数字和下划线。\W, 匹配除字母、数字和下划线之外的字符。\d, 仅匹配数字。\D, 匹配除数字之外的字符。\s, 匹配空白符。\S, 匹配空白符之外的字符。 字符集[ ],中括号内的字符组成一个字符集，匹配集合内的任意字符。如有字符串beer deer feer, 正则表达式[bdf]eer.匹配结果：beer,deer,feer 否定字符集^在字符集的首部, 代表不匹配字符集中任意字符。如有字符串beer deer feer, 正则表达式[^bd]eer.匹配结果：feer 字符范围a-z, 代表匹配字符a到z左闭右闭的字符范围，数字同理。 字符次数+，代表前一个字符出现一次或者多次。如有字符串br ber beer, 正则表达式be+r。匹配结果：ber,beer*, 代表前一个字符出现0次或者多次。如有字符串br ber beer,...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/ASM/" title="ASM">ASM</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.765Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a></span></div><div class="content">ASM架构ASM是围绕事件生产者（class parser）、事件消费者（class writer）和各种预定义的事件过滤器的架构。架构图如下所示： 导入ASM库123456dependencies &#123;       //ASM相关依赖      implementation &#x27;org.ow2.asm:asm:9.4&#x27;      implementation &#x27;org.ow2.asm:asm-commons:9.4&#x27;      implementation &#x27;org.ow2.asm:asm-util:9.4&#x27; ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/learn/02%20%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/Jackson%E6%90%AD%E9%85%8Ddata%20class%E4%BD%BF%E7%94%A8%E7%9A%84%E9%97%AE%E9%A2%98/" title="Jackson搭配data class使用的问题">Jackson搭配data class使用的问题</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.765Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/learn/">learn</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/learn/02-%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/">02 踩坑记录</a></span></div><div class="content">有这样一个Task数据类： 1234567891011data class Task(      val id: Int = -1,      val userId: Int,      val start: LatLonPoint,      val end: LatLonPoint,      val completed: LatLonPoint,      val schedule: Float,      val isAward: Int,      val integral: Int,      val tripMode: String  ) 由于kotlin会为这个类生产getter、setter方法。 12345678910111213141516171819202122232425262728293031323334public final class Task &#123;   private final int id;   private final int userId;   private final float schedule;   private...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/learn/02%20%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/Kotlin%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" title="Kotlin踩坑记录">Kotlin踩坑记录</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.765Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/learn/">learn</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/learn/02-%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/">02 踩坑记录</a></span></div><div class="content">kotlin过渡优化123456binding.noSignalPowerControl.visibility = if (context.resources.getBoolean(R.bool.support_no_signal_power_control)) &#123;      View.VISIBLE  &#125; else &#123;      View.GONE      return  &#125; 这段代码，我本意是对于隐藏的View直接return，不进行下一步操作但是实际反编译的代码，在条件不成立的情况下没有进行noSignalPowerControl.visibility=GONE操作，而是直接忽略了。下面是反编译后的代码： 1234567SpinnerLayout var10000 = ((DisplayViewBinding)this.getBinding()).noSignalPowerControl;  Intrinsics.checkNotNullExpressionValue(var10000,...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/learn/Java%E4%BC%98%E5%8C%96/%E5%85%AC%E5%85%B1%E5%AD%90%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B6%88%E9%99%A4/" title="公共子表达式消除">公共子表达式消除</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.765Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/learn/">learn</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/learn/Java%E4%BC%98%E5%8C%96/">Java优化</a></span></div><div class="content">公共子表达式消除是一项非常经典的、普遍应用于各种编译器的优化技术，它的含义是：如果一 个表达式E之前已经被计算过了，并且从先前的计算到现在E中所有变量的值都没有发生变化，那么E 的这次出现就称为公共子表达式。对于这种表达式，没有必要花时间再对它重新进行计算，只需要直 接用前面计算过的表达式结果代替E。如果这种优化仅限于程序基本块内，便可称为局部公共子表达 式消除（Local Common Subexpression Elimination），如果这种优化的范围涵盖了多个基本块，那就称 为全局公共子表达式消除（Global Common Subexpression Elimination）。下面举个简单的例子来说明它 的优化过程，假设存在如下代码： 1int d = (c * b) * 12 + a + (a + b * c); 当这段代码进入虚拟机即时编译器后，它将进行如下优化：编译器检测到c*b与b*c是一样的表达 式，而且在计算期间b与c的值是不变的。因此这条表达式就可能被视为： 1int d = E * 12 + a + (a +...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/learn/Java%E4%BC%98%E5%8C%96/%E6%96%B9%E6%B3%95%E5%86%85%E8%81%94/" title="方法内联">方法内联</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.765Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/learn/">learn</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/learn/Java%E4%BC%98%E5%8C%96/">Java优化</a></span></div><div class="content">定义方法内联（Method inlining）是一种编译器优化技术，它将函数调用直接替换为函数体中的代码。这样可以减少函数调用的开销，提高程序的执行效率。在方法内联的过程中，编译器会将被调用的函数的代码复制到调用点处，并对代码进行必要的修改以确保正确性。 适用范围按照经典编译原理的优化理论，大多数Java方法都无法进行内联。因为因为大多Java方法都是虚方法，只有静态方法、私有方法、实例构造方法、父类方法、final修饰的编译时确定的方法等方法才能进行内联，其余方法由于是虚方法，只有运行时才能确定方法的多态选择，所以无法进行内联。 解决方案引入类型继承关系分析（Class Hierarchy Analysis，CHA）用于确定已经加载的类中，某个接口是否有多余一种的实现、某个类是否存在子类、某个子类是否重写父类的某个虚方法等信息。 守护内联（Guarded Inlining）如果在内联碰到虚方法，会向CHA查询此方法在当前状态下是否有多个目标版本可供选择，如果只有一个版本，可以对方法进行内联，这种内联称为守护内联。若加载到新的类型从而改变CHA的结论，将执行退路（Slow...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/4/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/#content-inner">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/#content-inner">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/#content-inner">9</a><a class="extend next" rel="next" href="/page/6/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">86</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/IO%E6%A8%A1%E5%9E%8B/" title="IO模型">IO模型</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Java%E5%B9%B6%E5%8F%91/" title="Java并发">Java并发</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Linux/%E5%9C%A8U-Boot%E7%8E%AF%E5%A2%83%E4%B8%8B%E6%9F%A5%E7%9C%8BU%E7%9B%98%E6%96%87%E4%BB%B6/" title="在U Boot环境下查看U盘文件">在U Boot环境下查看U盘文件</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Windows/wsl%E4%BB%A3%E7%90%86/" title="wsl代理">wsl代理</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Android/%E6%9D%82%E9%A1%B9/Android%20%E7%B3%BB%E7%BB%9F%E5%AF%BC%E8%88%AA%E6%A0%8F%E6%A8%A1%E5%BC%8F%E5%88%87%E6%8D%A2%E4%B8%8E%E6%9F%A5%E8%AF%A2/" title="Android 系统导航栏模式切换与查询">Android 系统导航栏模式切换与查询</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/learn/"><span class="card-category-list-name">learn</span><span class="card-category-list-count">15</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/learn/01-plan/"><span class="card-category-list-name">01 plan</span><span class="card-category-list-count">7</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/learn/02-%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/"><span class="card-category-list-name">02 踩坑记录</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/learn/Java%E4%BC%98%E5%8C%96/"><span class="card-category-list-name">Java优化</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/learn/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"><span class="card-category-list-name">设计模式</span><span class="card-category-list-count">2</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/note/"><span class="card-category-list-name">note</span><span class="card-category-list-count">57</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/note/Android/"><span class="card-category-list-name">Android</span><span class="card-category-list-count">51</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/note/Android/BLE/"><span class="card-category-list-name">BLE</span><span class="card-category-list-count">1</span></a></li></ul></li></ul></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Java%E5%AD%A6%E4%B9%A0/" style="font-size: 1.1em; color: #999">Java学习</a> <a href="/tags/Kotlin/" style="font-size: 1.23em; color: #999ea6">Kotlin</a> <a href="/tags/Java/" style="font-size: 1.1em; color: #999">Java</a> <a href="/tags/SharedPreferences/" style="font-size: 1.1em; color: #999">SharedPreferences</a> <a href="/tags/Activity/" style="font-size: 1.1em; color: #999">Activity</a> <a href="/tags/Android/" style="font-size: 1.5em; color: #99a9bf">Android</a> <a href="/tags/Handler/" style="font-size: 1.1em; color: #999">Handler</a> <a href="/tags/View/" style="font-size: 1.37em; color: #99a4b2">View</a> <a href="/tags/LiveData/" style="font-size: 1.23em; color: #999ea6">LiveData</a> <a href="/tags/Paging3/" style="font-size: 1.1em; color: #999">Paging3</a> <a href="/tags/PlantUML/" style="font-size: 1.1em; color: #999">PlantUML</a> <a href="/tags/%E9%97%AE%E9%A2%98/" style="font-size: 1.1em; color: #999">问题</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/10/">
+            <span class="card-archive-list-date">
+              十月 2025
+            </span>
+            <span class="card-archive-list-count">73</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/03/">
+            <span class="card-archive-list-date">
+              三月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/02/">
+            <span class="card-archive-list-date">
+              二月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/09/">
+            <span class="card-archive-list-date">
+              九月 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/08/">
+            <span class="card-archive-list-date">
+              八月 2022
+            </span>
+            <span class="card-archive-list-count">5</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/04/">
+            <span class="card-archive-list-date">
+              四月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/03/">
+            <span class="card-archive-list-date">
+              三月 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2020/04/">
+            <span class="card-archive-list-date">
+              四月 2020
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">86</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-10-28T05:23:35.961Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js"></script></div></body></html>

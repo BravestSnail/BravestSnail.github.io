@@ -1,0 +1,303 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Framework开发 认识Android.bp文件 | BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Android.bp 文件详解Android.bp是Android构建系统Soong的核心配置文件，用于定义模块的构建规则。它替代了传统的Android.mk文件，提供了更简洁、更强大的构建配置方式。 基本结构1. 包声明 123package &#123;    default_applicable_licenses: [&quot;Android-Apache-2.0&quot;],&amp;#125">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Framework开发 认识Android.bp文件">
+<meta property="og:url" content="https://bravestsnail.github.io/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Framework%E5%BC%80%E5%8F%91-%E8%AE%A4%E8%AF%86Android.bp%E6%96%87%E4%BB%B6/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:description" content="Android.bp 文件详解Android.bp是Android构建系统Soong的核心配置文件，用于定义模块的构建规则。它替代了传统的Android.mk文件，提供了更简洁、更强大的构建配置方式。 基本结构1. 包声明 123package &#123;    default_applicable_licenses: [&quot;Android-Apache-2.0&quot;],&amp;#125">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:published_time" content="2025-10-27T05:06:11.768Z">
+<meta property="article:modified_time" content="2025-10-27T16:42:15.962Z">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Framework开发 认识Android.bp文件",
+  "url": "https://bravestsnail.github.io/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Framework%E5%BC%80%E5%8F%91-%E8%AE%A4%E8%AF%86Android.bp%E6%96%87%E4%BB%B6/",
+  "image": "https://bravestsnail.github.io/images/avatar.png",
+  "datePublished": "2025-10-27T05:06:11.768Z",
+  "dateModified": "2025-10-27T16:42:15.962Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "BravestSnail",
+      "url": "https://bravestsnail.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Framework%E5%BC%80%E5%8F%91-%E8%AE%A4%E8%AF%86Android.bp%E6%96%87%E4%BB%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Framework开发 认识Android.bp文件',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">86</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/posts/"><i class="fa-fw fas fa-archive"></i><span> Posts</span></a></div><div class="menus_item"><a class="site-page" href="/learn/"><i class="fa-fw fas fa-book"></i><span> Learn</span></a></div><div class="menus_item"><a class="site-page" href="/note/"><i class="fa-fw fas fa-sticky-note"></i><span> Note</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Framework开发 认识Android.bp文件</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/posts/"><i class="fa-fw fas fa-archive"></i><span> Posts</span></a></div><div class="menus_item"><a class="site-page" href="/learn/"><i class="fa-fw fas fa-book"></i><span> Learn</span></a></div><div class="menus_item"><a class="site-page" href="/note/"><i class="fa-fw fas fa-sticky-note"></i><span> Note</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Framework开发 认识Android.bp文件</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-10-27T05:06:11.768Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-27T16:42:15.962Z" title="更新于 2025-10-28 00:42:15">2025-10-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/">note</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/Android/Framework/">Framework</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/">Framework初识</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="Android-bp-文件详解"><a href="#Android-bp-文件详解" class="headerlink" title="Android.bp 文件详解"></a>Android.bp 文件详解</h2><p>Android.bp是Android构建系统Soong的核心配置文件，用于定义模块的构建规则。它替代了传统的Android.mk文件，提供了更简洁、更强大的构建配置方式。</p>
+<h3 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h3><p><strong>1. 包声明</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">package &#123;</span><br><span class="line">    default_applicable_licenses: [&quot;Android-Apache-2.0&quot;],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>定义模块的许可证信息</li>
+<li>指定默认的许可证类型</li>
+</ul>
+<p><strong>2. 模块定义</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">android_app &#123;</span><br><span class="line">    name: &quot;ModuleName&quot;,</span><br><span class="line">    srcs: [&quot;src/**/*.java&quot;],</span><br><span class="line">    // 其他配置...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="主要模块类型"><a href="#主要模块类型" class="headerlink" title="主要模块类型"></a>主要模块类型</h3><p><strong>android_app</strong> - Android应用程序</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">android_app &#123;</span><br><span class="line">    name: &quot;MyApp&quot;,</span><br><span class="line">    srcs: [&quot;src/**/*.java&quot;],</span><br><span class="line">    resource_dirs: [&quot;res&quot;],</span><br><span class="line">    manifest: &quot;AndroidManifest.xml&quot;,</span><br><span class="line">    certificate: &quot;platform&quot;,</span><br><span class="line">    platform_apis: true,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>android_library</strong> - Android库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">android_library &#123;</span><br><span class="line">    name: &quot;MyLibrary&quot;,</span><br><span class="line">    srcs: [&quot;src/**/*.java&quot;],</span><br><span class="line">    static_libs: [&quot;other_library&quot;],</span><br><span class="line">    libs: [&quot;shared_library&quot;],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>java_library</strong> - Java库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">java_library &#123;</span><br><span class="line">    name: &quot;MyJavaLib&quot;,</span><br><span class="line">    srcs: [&quot;src/**/*.java&quot;],</span><br><span class="line">    libs: [&quot;android&quot;],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>filegroup</strong> - 文件组</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">filegroup &#123;</span><br><span class="line">    name: &quot;MyFiles&quot;,</span><br><span class="line">    srcs: [&quot;src/**/*.java&quot;],</span><br><span class="line">    visibility: [&quot;//visibility:private&quot;],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="关键属性详解"><a href="#关键属性详解" class="headerlink" title="关键属性详解"></a>关键属性详解</h3><p><strong>1. 源代码配置</strong></p>
+<ul>
+<li><code>srcs</code>: 源文件路径，支持通配符</li>
+<li><code>exclude_srcs</code>: 排除的源文件</li>
+<li><code>resource_dirs</code>: 资源目录</li>
+<li><code>manifest</code>: AndroidManifest.xml文件路径</li>
+</ul>
+<p><strong>2. 依赖配置</strong></p>
+<ul>
+<li><code>static_libs</code>: 静态库依赖</li>
+<li><code>libs</code>: 共享库依赖</li>
+<li><code>uses_libs</code>: 运行时库依赖</li>
+<li><code>optional_uses_libs</code>: 可选的运行时库</li>
+</ul>
+<p><strong>3. 编译配置</strong></p>
+<ul>
+<li><code>javacflags</code>: Java编译标志</li>
+<li><code>kotlincflags</code>: Kotlin编译标志</li>
+<li><code>plugins</code>: 编译插件</li>
+<li><code>optimize</code>: 优化配置</li>
+</ul>
+<p><strong>4. 权限和证书</strong></p>
+<ul>
+<li><code>certificate</code>: 签名证书</li>
+<li><code>privileged</code>: 特权应用</li>
+<li><code>platform_apis</code>: 使用平台API</li>
+</ul>
+<h3 id="SystemUI-Android-bp-分析"><a href="#SystemUI-Android-bp-分析" class="headerlink" title="SystemUI Android.bp 分析"></a>SystemUI Android.bp 分析</h3><p>SystemUI的Android.bp文件展示了复杂模块的配置方式：</p>
+<p><strong>1. 多模块结构</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">// 核心库</span><br><span class="line">android_library &#123;</span><br><span class="line">    name: &quot;SystemUI-core&quot;,</span><br><span class="line">    srcs: [&quot;src/**/*.kt&quot;, &quot;src/**/*.java&quot;],</span><br><span class="line">    static_libs: [&quot;SystemUI-res&quot;, &quot;WindowManager-Shell&quot;],</span><br><span class="line">    // ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 主应用</span><br><span class="line">android_app &#123;</span><br><span class="line">    name: &quot;SystemUI&quot;,</span><br><span class="line">    static_libs: [&quot;SystemUI-core&quot;],</span><br><span class="line">    certificate: &quot;platform&quot;,</span><br><span class="line">    privileged: true,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 条件编译</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">product_variables: &#123;</span><br><span class="line">    debuggable: &#123;</span><br><span class="line">        srcs: [&quot;:DebugJavaFiles&quot;],</span><br><span class="line">        exclude_srcs: [&quot;:ReleaseJavaFiles&quot;],</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 测试配置</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">android_robolectric_test &#123;</span><br><span class="line">    name: &quot;SystemUiRoboTests&quot;,</span><br><span class="line">    srcs: [&quot;:SystemUI-tests-utils&quot;],</span><br><span class="line">    static_libs: [&quot;RoboTestLibraries&quot;],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="高级特性"><a href="#高级特性" class="headerlink" title="高级特性"></a>高级特性</h3><p><strong>1. 可见性控制</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">visibility: [&quot;//visibility:public&quot;],</span><br><span class="line">visibility: [&quot;//visibility:private&quot;],</span><br><span class="line">visibility: [&quot;//visibility:subpackages&quot;],</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 条件配置</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">soong_config_module_type &#123;</span><br><span class="line">    name: &quot;systemui_optimized_java_defaults&quot;,</span><br><span class="line">    module_type: &quot;java_defaults&quot;,</span><br><span class="line">    config_namespace: &quot;ANDROID&quot;,</span><br><span class="line">    bool_variables: [&quot;SYSTEMUI_OPTIMIZE_JAVA&quot;],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 文件组管理</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">filegroup &#123;</span><br><span class="line">    name: &quot;ReleaseJavaFiles&quot;,</span><br><span class="line">    srcs: [&quot;src-release/**/*.kt&quot;],</span><br><span class="line">    visibility: [&quot;//visibility:private&quot;],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="开发建议"><a href="#开发建议" class="headerlink" title="开发建议"></a>开发建议</h3><p><strong>1. 模块化设计</strong></p>
+<ul>
+<li>将复杂项目分解为多个模块</li>
+<li>使用filegroup管理文件集合</li>
+<li>合理配置模块间的依赖关系</li>
+</ul>
+<p><strong>2. 条件编译</strong></p>
+<ul>
+<li>使用product_variables处理不同构建变体</li>
+<li>利用soong_config处理配置选项</li>
+<li>合理使用exclude_srcs排除文件</li>
+</ul>
+<p><strong>3. 测试集成</strong></p>
+<ul>
+<li>配置单元测试和集成测试</li>
+<li>使用android_robolectric_test进行测试</li>
+<li>合理管理测试依赖</li>
+</ul>
+<p><strong>4. 性能优化</strong></p>
+<ul>
+<li>使用optimize配置进行代码优化</li>
+<li>合理配置static_libs和libs</li>
+<li>注意编译标志的影响</li>
+</ul>
+<p>Android.bp文件是Android构建系统的核心，理解其语法和配置方式对于Android系统开发至关重要。建议从简单模块开始，逐步掌握复杂配置的使用方法。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io">BravestSnail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Framework%E5%BC%80%E5%8F%91-%E8%AE%A4%E8%AF%86Android.bp%E6%96%87%E4%BB%B6/">https://bravestsnail.github.io/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Framework%E5%BC%80%E5%8F%91-%E8%AE%A4%E8%AF%86Android.bp%E6%96%87%E4%BB%B6/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://bravestsnail.github.io" target="_blank">BravestSnail's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Framework%E5%BC%80%E5%8F%91-%E5%88%86%E5%8C%BA%E4%BB%8B%E7%BB%8D/" title="Framework开发 分区介绍"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Framework开发 分区介绍</div></div><div class="info-2"><div class="info-item-1">Android分区架构详解1. 核心系统分区boot分区 作用： 包含Linux内核和初始RAM磁盘(initramfs) 内容： 内核、设备树、启动参数 大小： 通常16-64MB 更新频率： 较少，主要在系统升级时  system分区 作用： 包含Android系统框架和核心应用 内容： framework-res.apk、framework.jar、SystemUI等 大小： 通常1-3GB 更新频率： 经常，包含您的修改  vendor分区 作用： 包含厂商特定的驱动和HAL 内容： 硬件抽象层、厂商驱动、闭源库 大小： 通常500MB-2GB 更新频率： 中等，厂商更新时  2. 用户数据分区userdata分区 作用： 存储用户数据和已安装应用 内容： 应用数据、用户文件、设置 大小： 设备总存储的大部分 更新频率： 持续，用户使用过程中  cache分区 作用： 临时缓存和OTA更新包 内容： 系统缓存、下载的更新包 大小： 通常100-500MB 更新频率： 频繁，可被清理  3. 特殊功能分区recovery分区 作用： 系统恢复和更新环境 内容：...</div></div></div></a><a class="pagination-related" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/01%20WindowManagerService%E6%B7%BB%E5%8A%A0View/" title="01 WindowManagerService添加View"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">01 WindowManagerService添加View</div></div><div class="info-2"><div class="info-item-1">我来分析应用进程的 WindowManager 如何调用到 WindowManagerService.addWindow() 的完整调用链，并绘制时序图。 应用进程 WindowManager 到 WindowManagerService.addWindow() 调用链分析核心调用流程sequenceDiagram     participant App as 应用进程     participant WMI as WindowManagerImpl     participant WMG as WindowManagerGlobal     participant VRI as ViewRootImpl     participant Session as Session     participant WMS as WindowManagerService          App->>WMI: 1. addView(view, params)     Note over WMI: applyTokens(params)设置window token等    ...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">86</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Android-bp-%E6%96%87%E4%BB%B6%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">Android.bp 文件详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="toc-number">1.1.</span> <span class="toc-text">基本结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E6%A8%A1%E5%9D%97%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.2.</span> <span class="toc-text">主要模块类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%B1%9E%E6%80%A7%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.3.</span> <span class="toc-text">关键属性详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SystemUI-Android-bp-%E5%88%86%E6%9E%90"><span class="toc-number">1.4.</span> <span class="toc-text">SystemUI Android.bp 分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7"><span class="toc-number">1.5.</span> <span class="toc-text">高级特性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.6.</span> <span class="toc-text">开发建议</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/IO%E6%A8%A1%E5%9E%8B/" title="IO模型">IO模型</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Java%E5%B9%B6%E5%8F%91/" title="Java并发">Java并发</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Linux/%E5%9C%A8U-Boot%E7%8E%AF%E5%A2%83%E4%B8%8B%E6%9F%A5%E7%9C%8BU%E7%9B%98%E6%96%87%E4%BB%B6/" title="在U Boot环境下查看U盘文件">在U Boot环境下查看U盘文件</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Windows/wsl%E4%BB%A3%E7%90%86/" title="wsl代理">wsl代理</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Android/%E6%9D%82%E9%A1%B9/Android%20%E7%B3%BB%E7%BB%9F%E5%AF%BC%E8%88%AA%E6%A0%8F%E6%A8%A1%E5%BC%8F%E5%88%87%E6%8D%A2%E4%B8%8E%E6%9F%A5%E8%AF%A2/" title="Android 系统导航栏模式切换与查询">Android 系统导航栏模式切换与查询</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js"></script></div></body></html>

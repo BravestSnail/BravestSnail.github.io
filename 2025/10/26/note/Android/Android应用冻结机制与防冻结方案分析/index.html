@@ -1,0 +1,776 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Android 应用冻结机制与防冻结方案分析 | BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Android 应用冻结机制与防冻结方案分析目录 1. 背景介绍 2. 应用冻结机制详解 2.1 什么是应用冻结 2.2 冻结触发条件 2.3 OOM Adjustment 机制 2.4 冻结流程源码分析   3. 防冻结方案详解 3.1 ContentProvider 方案 3.2 前台服务方案 3.3 省电白名单方案 3.4 Persistent 应用方案 3.5 Service 绑定方案">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 应用冻结机制与防冻结方案分析">
+<meta property="og:url" content="https://bravestsnail.github.io/2025/10/26/note/Android/Android%E5%BA%94%E7%94%A8%E5%86%BB%E7%BB%93%E6%9C%BA%E5%88%B6%E4%B8%8E%E9%98%B2%E5%86%BB%E7%BB%93%E6%96%B9%E6%A1%88%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:description" content="Android 应用冻结机制与防冻结方案分析目录 1. 背景介绍 2. 应用冻结机制详解 2.1 什么是应用冻结 2.2 冻结触发条件 2.3 OOM Adjustment 机制 2.4 冻结流程源码分析   3. 防冻结方案详解 3.1 ContentProvider 方案 3.2 前台服务方案 3.3 省电白名单方案 3.4 Persistent 应用方案 3.5 Service 绑定方案">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:published_time" content="2025-10-26T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-10-27T16:42:15.954Z">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Android 应用冻结机制与防冻结方案分析",
+  "url": "https://bravestsnail.github.io/2025/10/26/note/Android/Android%E5%BA%94%E7%94%A8%E5%86%BB%E7%BB%93%E6%9C%BA%E5%88%B6%E4%B8%8E%E9%98%B2%E5%86%BB%E7%BB%93%E6%96%B9%E6%A1%88%E5%88%86%E6%9E%90/",
+  "image": "https://bravestsnail.github.io/images/avatar.png",
+  "datePublished": "2025-10-26T16:00:00.000Z",
+  "dateModified": "2025-10-27T16:42:15.954Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "BravestSnail",
+      "url": "https://bravestsnail.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/2025/10/26/note/Android/Android%E5%BA%94%E7%94%A8%E5%86%BB%E7%BB%93%E6%9C%BA%E5%88%B6%E4%B8%8E%E9%98%B2%E5%86%BB%E7%BB%93%E6%96%B9%E6%A1%88%E5%88%86%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Android 应用冻结机制与防冻结方案分析',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">86</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/posts/"><i class="fa-fw fas fa-archive"></i><span> Posts</span></a></div><div class="menus_item"><a class="site-page" href="/learn/"><i class="fa-fw fas fa-book"></i><span> Learn</span></a></div><div class="menus_item"><a class="site-page" href="/note/"><i class="fa-fw fas fa-sticky-note"></i><span> Note</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Android 应用冻结机制与防冻结方案分析</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/posts/"><i class="fa-fw fas fa-archive"></i><span> Posts</span></a></div><div class="menus_item"><a class="site-page" href="/learn/"><i class="fa-fw fas fa-book"></i><span> Learn</span></a></div><div class="menus_item"><a class="site-page" href="/note/"><i class="fa-fw fas fa-sticky-note"></i><span> Note</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Android 应用冻结机制与防冻结方案分析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-10-26T16:00:00.000Z" title="发表于 2025-10-27 00:00:00">2025-10-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-27T16:42:15.954Z" title="更新于 2025-10-28 00:42:15">2025-10-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/">note</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/Android/">Android</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Android-应用冻结机制与防冻结方案分析"><a href="#Android-应用冻结机制与防冻结方案分析" class="headerlink" title="Android 应用冻结机制与防冻结方案分析"></a>Android 应用冻结机制与防冻结方案分析</h1><h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#1-%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D">1. 背景介绍</a></li>
+<li><a href="#2-%E5%BA%94%E7%94%A8%E5%86%BB%E7%BB%93%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3">2. 应用冻结机制详解</a><ul>
+<li><a href="#21-%E4%BB%80%E4%B9%88%E6%98%AF%E5%BA%94%E7%94%A8%E5%86%BB%E7%BB%93">2.1 什么是应用冻结</a></li>
+<li><a href="#22-%E5%86%BB%E7%BB%93%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6">2.2 冻结触发条件</a></li>
+<li><a href="#23-oom-adjustment-%E6%9C%BA%E5%88%B6">2.3 OOM Adjustment 机制</a></li>
+<li><a href="#24-%E5%86%BB%E7%BB%93%E6%B5%81%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90">2.4 冻结流程源码分析</a></li>
+</ul>
+</li>
+<li><a href="#3-%E9%98%B2%E5%86%BB%E7%BB%93%E6%96%B9%E6%A1%88%E8%AF%A6%E8%A7%A3">3. 防冻结方案详解</a><ul>
+<li><a href="#31-contentprovider-%E6%96%B9%E6%A1%88">3.1 ContentProvider 方案</a></li>
+<li><a href="#32-%E5%89%8D%E5%8F%B0%E6%9C%8D%E5%8A%A1%E6%96%B9%E6%A1%88">3.2 前台服务方案</a></li>
+<li><a href="#33-%E7%9C%81%E7%94%B5%E7%99%BD%E5%90%8D%E5%8D%95%E6%96%B9%E6%A1%88">3.3 省电白名单方案</a></li>
+<li><a href="#34-persistent-%E5%BA%94%E7%94%A8%E6%96%B9%E6%A1%88">3.4 Persistent 应用方案</a></li>
+<li><a href="#35-service-%E7%BB%91%E5%AE%9A%E6%96%B9%E6%A1%88">3.5 Service 绑定方案</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94%E4%B8%8E%E8%AF%84%E4%BC%B0">4. 方案对比与评估</a></li>
+<li><a href="#5-%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE">5. 实践建议</a></li>
+<li><a href="#6-%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE">6. 参考文献</a></li>
+</ul>
+<hr>
+<h2 id="1-背景介绍"><a href="#1-背景介绍" class="headerlink" title="1. 背景介绍"></a>1. 背景介绍</h2><p>从 Android 11 (API 30) 开始，Android 系统引入了<strong>应用冻结 (App Freezing)</strong> 机制，作为 Cached App Optimizer 的一部分。该机制旨在通过冻结后台缓存应用来减少系统资源消耗，延长电池续航时间，同时保持应用在内存中以便快速恢复。</p>
+<h3 id="问题场景"><a href="#问题场景" class="headerlink" title="问题场景"></a>问题场景</h3><p>在实际应用中，某些后台服务（如计时器、倒计时小工具）在运行一段时间后会突然停止工作，查看日志发现应用被系统主动冻结：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ActivityManager: freezing 29669 com.example.stopwatch</span><br></pre></td></tr></table></figure>
+
+<p>这种冻结会导致：</p>
+<ul>
+<li>后台计时停止</li>
+<li>定时任务无法执行</li>
+<li>网络连接被挂起</li>
+<li>用户体验受影响</li>
+</ul>
+<hr>
+<h2 id="2-应用冻结机制详解"><a href="#2-应用冻结机制详解" class="headerlink" title="2. 应用冻结机制详解"></a>2. 应用冻结机制详解</h2><h3 id="2-1-什么是应用冻结"><a href="#2-1-什么是应用冻结" class="headerlink" title="2.1 什么是应用冻结"></a>2.1 什么是应用冻结</h3><p>应用冻结是一种进程状态管理技术，通过 Linux cgroup freezer 机制暂停进程的执行：</p>
+<ul>
+<li><strong>冻结 (Frozen)</strong>: 进程被暂停执行，不消耗 CPU 资源，但保留在内存中</li>
+<li><strong>解冻 (Unfrozen)</strong>: 进程恢复执行，从暂停点继续运行</li>
+<li><strong>与杀死的区别</strong>: 冻结的进程仍在内存中，解冻后可立即恢复；被杀死的进程需要重新启动</li>
+</ul>
+<h3 id="2-2-冻结触发条件"><a href="#2-2-冻结触发条件" class="headerlink" title="2.2 冻结触发条件"></a>2.2 冻结触发条件</h3><p>系统在以下条件下会冻结应用（源码位置：<code>CachedAppOptimizer.java</code>）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">freezeProcess</span><span class="params">(<span class="keyword">final</span> ProcessRecord proc)</span> &#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (mProcLock) &#123;</span><br><span class="line">        pid = proc.getPid();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 条件1: ADJ 必须 &gt;= CACHED_APP_MIN_ADJ (900)</span></span><br><span class="line">        <span class="keyword">if</span> (proc.mState.getCurAdj() &lt; ProcessList.CACHED_APP_MIN_ADJ</span><br><span class="line">                || opt.shouldNotFreeze()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (DEBUG_FREEZER) &#123;</span><br><span class="line">                Slog.d(TAG_AM, <span class="string">&quot;Skipping freeze for process &quot;</span> + pid</span><br><span class="line">                        + <span class="string">&quot; &quot;</span> + name + <span class="string">&quot; curAdj = &quot;</span> + proc.mState.getCurAdj()</span><br><span class="line">                        + <span class="string">&quot;, shouldNotFreeze = &quot;</span> + opt.shouldNotFreeze());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 条件2: 不能处于冻结覆盖状态</span></span><br><span class="line">        <span class="keyword">if</span> (mFreezerOverride) &#123;</span><br><span class="line">            opt.setFreezerOverride(<span class="literal">true</span>);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 条件3: 进程未被冻结</span></span><br><span class="line">        <span class="keyword">if</span> (pid == <span class="number">0</span> || opt.isFrozen()) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        Slog.d(TAG_AM, <span class="string">&quot;freezing &quot;</span> + pid + <span class="string">&quot; &quot;</span> + name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>核心条件总结</strong>：</p>
+<ol>
+<li><strong>ADJ &gt;&#x3D; 900</strong> (CACHED_APP_MIN_ADJ)</li>
+<li><strong>shouldNotFreeze() &#x3D;&#x3D; false</strong></li>
+<li><strong>默认延迟时间</strong>: 600 秒（10 分钟）</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 默认冻结延迟时间配置</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">DEFAULT_FREEZER_DEBOUNCE_TIMEOUT</span> <span class="operator">=</span> <span class="number">600_000L</span>; <span class="comment">// 10 minutes</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-OOM-Adjustment-机制"><a href="#2-3-OOM-Adjustment-机制" class="headerlink" title="2.3 OOM Adjustment 机制"></a>2.3 OOM Adjustment 机制</h3><p>OOM Adjustment (简称 ADJ) 是 Android 进程优先级管理的核心机制，值越小优先级越高：</p>
+<table>
+<thead>
+<tr>
+<th>ADJ级别</th>
+<th>名称</th>
+<th>取值</th>
+<th>说明</th>
+<th>是否会被冻结</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NATIVE_ADJ</td>
+<td>native</td>
+<td>-1000</td>
+<td>Native 进程</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>SYSTEM_ADJ</td>
+<td>sys</td>
+<td>-900</td>
+<td>System Server</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>PERSISTENT_PROC_ADJ</td>
+<td>pers</td>
+<td>-800</td>
+<td>Persistent 进程</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>PERSISTENT_SERVICE_ADJ</td>
+<td>psvc</td>
+<td>-700</td>
+<td>Persistent 服务</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>FOREGROUND_APP_ADJ</td>
+<td>fg</td>
+<td><strong>0</strong></td>
+<td><strong>前台应用</strong></td>
+<td>❌</td>
+</tr>
+<tr>
+<td>PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ</td>
+<td></td>
+<td>50</td>
+<td>最近在前台的应用</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>VISIBLE_APP_ADJ</td>
+<td>vis</td>
+<td>100</td>
+<td>可见应用</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>PERCEPTIBLE_APP_ADJ</td>
+<td>prcp</td>
+<td>200</td>
+<td>可感知应用（如音乐播放）</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>PERCEPTIBLE_LOW_APP_ADJ</td>
+<td>prcl</td>
+<td>250</td>
+<td>低优先级可感知应用</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>BACKUP_APP_ADJ</td>
+<td>bkup</td>
+<td>300</td>
+<td>备份进程</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>HEAVY_WEIGHT_APP_ADJ</td>
+<td>hvy</td>
+<td>400</td>
+<td>重量级后台进程</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>SERVICE_ADJ</td>
+<td>svc</td>
+<td>500</td>
+<td>服务进程</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>HOME_APP_ADJ</td>
+<td>home</td>
+<td>600</td>
+<td>桌面进程</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>PREVIOUS_APP_ADJ</td>
+<td>prev</td>
+<td>700</td>
+<td>上一个应用</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>SERVICE_B_ADJ</td>
+<td>svcb</td>
+<td>800</td>
+<td>B List 服务</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>CACHED_APP_MIN_ADJ</strong></td>
+<td><strong>cch</strong></td>
+<td><strong>900</strong></td>
+<td><strong>缓存应用最小值</strong></td>
+<td><strong>✅ 冻结阈值</strong></td>
+</tr>
+<tr>
+<td>CACHED_APP_LMK_FIRST_ADJ</td>
+<td></td>
+<td>950</td>
+<td>LMK 首选杀死</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>CACHED_APP_MAX_ADJ</td>
+<td></td>
+<td>999</td>
+<td>缓存应用最大值</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>UNKNOWN_ADJ</td>
+<td></td>
+<td>1001</td>
+<td>未知状态</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<p><strong>关键点</strong>：</p>
+<ul>
+<li>ADJ &lt; 900: 不会被冻结</li>
+<li>ADJ &gt;&#x3D; 900: 会在一定时间后被冻结</li>
+<li>ADJ 值由 <code>OomAdjuster</code> 动态计算</li>
+</ul>
+<h3 id="2-4-冻结流程源码分析"><a href="#2-4-冻结流程源码分析" class="headerlink" title="2.4 冻结流程源码分析"></a>2.4 冻结流程源码分析</h3><h4 id="步骤1-OomAdjuster-计算-ADJ"><a href="#步骤1-OomAdjuster-计算-ADJ" class="headerlink" title="步骤1: OomAdjuster 计算 ADJ"></a>步骤1: OomAdjuster 计算 ADJ</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// OomAdjuster.java</span></span><br><span class="line"><span class="meta">@GuardedBy(&#123;&quot;mService&quot;, &quot;mProcLock&quot;&#125;)</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">maybeUpdateIsolatedFreeze</span><span class="params">(ProcessRecord app, <span class="meta">@OomAdjReason</span> <span class="type">int</span> oomAdjReason,</span></span><br><span class="line"><span class="params">        <span class="type">boolean</span> immediate)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!mCachedAppOptimizer.useFreezer()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (app.mOptRecord.isFreezeExempt()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="type">ProcessCachedOptimizerRecord</span> <span class="variable">opt</span> <span class="operator">=</span> app.mOptRecord;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果已冻结且 shouldNotFreeze 变为 true，立即解冻</span></span><br><span class="line">    <span class="keyword">if</span> (opt.isFrozen() &amp;&amp; opt.shouldNotFreeze()) &#123;</span><br><span class="line">        mCachedAppOptimizer.unfreezeAppLSP(app,</span><br><span class="line">                CachedAppOptimizer.getUnfreezeReasonCodeFromOomAdjReason(oomAdjReason));</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="type">ProcessStateRecord</span> <span class="variable">state</span> <span class="operator">=</span> app.mState;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 核心逻辑：ADJ &gt;= 900 且 shouldNotFreeze = false 时冻结</span></span><br><span class="line">    <span class="keyword">if</span> (state.getCurAdj() &gt;= FREEZER_CUTOFF_ADJ &amp;&amp; !opt.isFrozen()</span><br><span class="line">            &amp;&amp; !opt.shouldNotFreeze()) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!immediate) &#123;</span><br><span class="line">            mCachedAppOptimizer.freezeAppAsyncLSP(app);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            mCachedAppOptimizer.freezeAppAsyncAtEarliestLSP(app);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (state.getSetAdj() &lt; FREEZER_CUTOFF_ADJ) &#123;</span><br><span class="line">        mCachedAppOptimizer.unfreezeAppLSP(app,</span><br><span class="line">                CachedAppOptimizer.getUnfreezeReasonCodeFromOomAdjReason(oomAdjReason));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="步骤2-CachedAppOptimizer-执行冻结"><a href="#步骤2-CachedAppOptimizer-执行冻结" class="headerlink" title="步骤2: CachedAppOptimizer 执行冻结"></a>步骤2: CachedAppOptimizer 执行冻结</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// CachedAppOptimizer.java</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">freezeProcess</span><span class="params">(<span class="keyword">final</span> ProcessRecord proc)</span> &#123;</span><br><span class="line">    <span class="comment">// ... 前置检查 ...</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 冻结 Binder 接口</span></span><br><span class="line">        freezeBinder(pid, <span class="literal">true</span>, FREEZE_BINDER_TIMEOUT_MS);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 冻结进程</span></span><br><span class="line">        Process.setProcessFrozen(pid, proc.uid, <span class="literal">true</span>);</span><br><span class="line">        </span><br><span class="line">        opt.setFrozen(<span class="literal">true</span>);</span><br><span class="line">        opt.setFreezeUnfreezeTime(SystemClock.uptimeMillis());</span><br><span class="line">        </span><br><span class="line">        mFrozenProcesses.put(pid, proc);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        Slog.e(TAG_AM, <span class="string">&quot;Unable to freeze &quot;</span> + pid + <span class="string">&quot; &quot;</span> + proc.processName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-防冻结方案详解"><a href="#3-防冻结方案详解" class="headerlink" title="3. 防冻结方案详解"></a>3. 防冻结方案详解</h2><h3 id="3-1-ContentProvider-方案"><a href="#3-1-ContentProvider-方案" class="headerlink" title="3.1 ContentProvider 方案"></a>3.1 ContentProvider 方案</h3><h4 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h4><p>通过声明 ContentProvider 并调用系统 API <code>getContentProviderExternal()</code>，使系统认为该 Provider 具有外部进程依赖，从而将 ADJ 提升到 0。</p>
+<h4 id="关键机制"><a href="#关键机制" class="headerlink" title="关键机制"></a>关键机制</h4><p><strong>步骤1: 外部进程句柄机制</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ContentProviderRecord.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ContentProviderRecord</span> &#123;</span><br><span class="line">    <span class="comment">// 记录外部进程对 Provider 的持有</span></span><br><span class="line">    ArrayMap&lt;IBinder, ExternalProcessHandle&gt; externalProcessTokenToHandle;</span><br><span class="line">    <span class="type">int</span> externalProcessNoHandleCount;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addExternalProcessHandleLocked</span><span class="params">(IBinder token, <span class="type">int</span> callingUid, String callingTag)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (token == <span class="literal">null</span>) &#123;</span><br><span class="line">            externalProcessNoHandleCount++;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (externalProcessTokenToHandle == <span class="literal">null</span>) &#123;</span><br><span class="line">                externalProcessTokenToHandle = <span class="keyword">new</span> <span class="title class_">ArrayMap</span>&lt;&gt;();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="type">ExternalProcessHandle</span> <span class="variable">handle</span> <span class="operator">=</span> externalProcessTokenToHandle.get(token);</span><br><span class="line">            <span class="keyword">if</span> (handle == <span class="literal">null</span>) &#123;</span><br><span class="line">                handle = <span class="keyword">new</span> <span class="title class_">ExternalProcessHandle</span>(token, callingUid, callingTag);</span><br><span class="line">                externalProcessTokenToHandle.put(token, handle);</span><br><span class="line">                handle.startAssociationIfNeeded(<span class="built_in">this</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            handle.mAcquisitionCount++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">hasExternalProcessHandles</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (externalProcessTokenToHandle != <span class="literal">null</span> || externalProcessNoHandleCount &gt; <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤2: getContentProviderExternal 添加句柄</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ContentProviderHelper.java</span></span><br><span class="line"><span class="keyword">private</span> ContentProviderConnection <span class="title function_">incProviderCountLocked</span><span class="params">(ProcessRecord r,</span></span><br><span class="line"><span class="params">        <span class="keyword">final</span> ContentProviderRecord cpr, IBinder externalProcessToken, <span class="type">int</span> callingUid,</span></span><br><span class="line"><span class="params">        String callingPackage, String callingTag, <span class="type">boolean</span> stable, <span class="type">boolean</span> updateLru,</span></span><br><span class="line"><span class="params">        <span class="type">long</span> startTime, ProcessList processList, <span class="meta">@UserIdInt</span> <span class="type">int</span> expectedUserId)</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 关键：如果 r == null（通过 getContentProviderExternal 调用），添加外部句柄</span></span><br><span class="line">    <span class="keyword">if</span> (r == <span class="literal">null</span>) &#123;</span><br><span class="line">        cpr.addExternalProcessHandleLocked(externalProcessToken, callingUid, callingTag);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// ... 正常的 Provider 连接逻辑 ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤3: OomAdjuster 提升 ADJ</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// OomAdjuster.java</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">int</span> <span class="title function_">computeOomAdjLSP</span><span class="params">(ProcessRecord app, <span class="type">int</span> cachedAdj, ProcessRecord topApp,</span></span><br><span class="line"><span class="params">        <span class="type">boolean</span> doingAll, <span class="type">long</span> now, <span class="type">boolean</span> cycleReEval, <span class="type">boolean</span> computeClients,</span></span><br><span class="line"><span class="params">        <span class="meta">@OomAdjReason</span> <span class="type">int</span> oomAdjReason, <span class="type">boolean</span> couldRecurse)</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 检查 Provider 是否有外部进程依赖</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">iproc</span> <span class="operator">=</span> ppr.numberOfPublishedProviders() - <span class="number">1</span>; iproc &gt;= <span class="number">0</span>; iproc--) &#123;</span><br><span class="line">        <span class="type">ContentProviderRecord</span> <span class="variable">cpr</span> <span class="operator">=</span> ppr.getPublishedProviderAt(iproc);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 如果有外部进程句柄，提升到前台应用级别</span></span><br><span class="line">        <span class="keyword">if</span> (cpr.hasExternalProcessHandles()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (adj &gt; FOREGROUND_APP_ADJ) &#123;</span><br><span class="line">                adj = FOREGROUND_APP_ADJ;  <span class="comment">// ADJ = 0</span></span><br><span class="line">                state.setCurRawAdj(adj);</span><br><span class="line">                schedGroup = SCHED_GROUP_DEFAULT;</span><br><span class="line">                state.setAdjType(<span class="string">&quot;ext-provider&quot;</span>);</span><br><span class="line">                state.setAdjTarget(cpr.name);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (procState &gt; PROCESS_STATE_IMPORTANT_FOREGROUND) &#123;</span><br><span class="line">                procState = PROCESS_STATE_IMPORTANT_FOREGROUND;</span><br><span class="line">                state.setCurRawProcState(procState);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="完整实现代码"><a href="#完整实现代码" class="headerlink" title="完整实现代码"></a>完整实现代码</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * ADJ 调整器 - 通过 ContentProvider 防止应用被冻结</span></span><br><span class="line"><span class="comment"> * 原理：通过 getContentProviderExternal() 使 Provider 具有外部进程依赖，</span></span><br><span class="line"><span class="comment"> *       从而将应用 ADJ 提升到 FOREGROUND_APP_ADJ (0)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AdjAdjuster</span> <span class="keyword">extends</span> <span class="title class_">ContentProvider</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">TAG</span> <span class="operator">=</span> <span class="string">&quot;AdjAdjuster&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">AUTHORITY</span> <span class="operator">=</span> <span class="string">&quot;com.example.countdown.provider.AdjAdjuster&quot;</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 引用计数管理</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Set&lt;Integer&gt; sKeySet = <span class="keyword">new</span> <span class="title class_">HashSet</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">IBinder</span> <span class="variable">sToken</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Binder</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 开始防冻结保护</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> key 场景标识，用于引用计数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">onStart</span><span class="params">(<span class="type">int</span> key)</span> &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (sKeySet) &#123;</span><br><span class="line">            sKeySet.add(key);</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 只在第一次调用时获取 Provider</span></span><br><span class="line">            <span class="keyword">if</span> (sKeySet.size() == <span class="number">1</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="comment">// 调用系统 API，将自己的 Provider 标记为具有外部依赖</span></span><br><span class="line">                    <span class="comment">// 需要权限: ACCESS_CONTENT_PROVIDERS_EXTERNALLY</span></span><br><span class="line">                    ActivityManager.getService().getContentProviderExternal(</span><br><span class="line">                        AUTHORITY,</span><br><span class="line">                        UserHandle.USER_CURRENT,</span><br><span class="line">                        sToken,</span><br><span class="line">                        TAG</span><br><span class="line">                    );</span><br><span class="line">                    Log.d(TAG, <span class="string">&quot;Anti-freeze protection enabled&quot;</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</span><br><span class="line">                    Log.e(TAG, <span class="string">&quot;Failed to enable anti-freeze protection&quot;</span>, e);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 停止防冻结保护</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> key 场景标识</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">onStop</span><span class="params">(<span class="type">int</span> key)</span> &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (sKeySet) &#123;</span><br><span class="line">            sKeySet.remove(key);</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 只在所有引用都释放后才真正移除</span></span><br><span class="line">            <span class="keyword">if</span> (sKeySet.isEmpty()) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    ActivityManager.getService().removeContentProviderExternal(</span><br><span class="line">                        AUTHORITY,</span><br><span class="line">                        sToken</span><br><span class="line">                    );</span><br><span class="line">                    Log.d(TAG, <span class="string">&quot;Anti-freeze protection disabled&quot;</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</span><br><span class="line">                    Log.e(TAG, <span class="string">&quot;Failed to disable anti-freeze protection&quot;</span>, e);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// ========== ContentProvider 空实现 ==========</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">onCreate</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Cursor <span class="title function_">query</span><span class="params">(<span class="meta">@NonNull</span> Uri uri, <span class="meta">@Nullable</span> String[] projection,</span></span><br><span class="line"><span class="params">                       <span class="meta">@Nullable</span> String selection, <span class="meta">@Nullable</span> String[] selectionArgs,</span></span><br><span class="line"><span class="params">                       <span class="meta">@Nullable</span> String sortOrder)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getType</span><span class="params">(<span class="meta">@NonNull</span> Uri uri)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Uri <span class="title function_">insert</span><span class="params">(<span class="meta">@NonNull</span> Uri uri, <span class="meta">@Nullable</span> ContentValues values)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">delete</span><span class="params">(<span class="meta">@NonNull</span> Uri uri, <span class="meta">@Nullable</span> String selection,</span></span><br><span class="line"><span class="params">                     <span class="meta">@Nullable</span> String[] selectionArgs)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">update</span><span class="params">(<span class="meta">@NonNull</span> Uri uri, <span class="meta">@Nullable</span> ContentValues values,</span></span><br><span class="line"><span class="params">                     <span class="meta">@Nullable</span> String selection, <span class="meta">@Nullable</span> String[] selectionArgs)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>AndroidManifest.xml 配置</strong>:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 声明 Provider --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">provider</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">&quot;.provider.AdjAdjuster&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:authorities</span>=<span class="string">&quot;com.example.countdown.provider.AdjAdjuster&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:exported</span>=<span class="string">&quot;false&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:enabled</span>=<span class="string">&quot;true&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 声明权限（系统应用已具备，无需额外申请） --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.ACCESS_CONTENT_PROVIDERS_EXTERNALLY&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>使用示例</strong>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在需要防冻结的场景启动时调用</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CountdownService</span> <span class="keyword">extends</span> <span class="title class_">Service</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">KEY_COUNTDOWN_SERVICE</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onCreate();</span><br><span class="line">        <span class="comment">// 启动防冻结保护</span></span><br><span class="line">        AdjAdjuster.onStart(KEY_COUNTDOWN_SERVICE);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onDestroy</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// 停止防冻结保护</span></span><br><span class="line">        AdjAdjuster.onStop(KEY_COUNTDOWN_SERVICE);</span><br><span class="line">        <span class="built_in">super</span>.onDestroy();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h4><ol>
+<li><strong>改动极小</strong>: 只需添加一个 Provider 类和 AndroidManifest 声明</li>
+<li><strong>完全自控</strong>: 应用内部可随时启停，无需外部进程配合</li>
+<li><strong>ADJ 最低</strong>: ADJ &#x3D; 0，等同前台应用，不会被冻结或杀死</li>
+<li><strong>零业务侵入</strong>: 不影响原有业务逻辑</li>
+<li><strong>引用计数</strong>: 支持多场景同时使用，安全可靠</li>
+</ol>
+<h4 id="劣势"><a href="#劣势" class="headerlink" title="劣势"></a>劣势</h4><ol>
+<li><strong>仅限系统应用</strong>: 需要 <code>ACCESS_CONTENT_PROVIDERS_EXTERNALLY</code> 权限（signature|privileged）</li>
+<li><strong>需要主动管理</strong>: 必须手动调用 <code>onStart()</code> 和 <code>onStop()</code>，忘记调用会导致应用长期占用高优先级</li>
+</ol>
+<hr>
+<h3 id="3-2-前台服务方案"><a href="#3-2-前台服务方案" class="headerlink" title="3.2 前台服务方案"></a>3.2 前台服务方案</h3><h4 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h4><p>通过启动前台服务（Foreground Service）提升应用优先级，前台服务的 ADJ 通常为 PERCEPTIBLE_APP_ADJ (200)。</p>
+<h4 id="实现代码"><a href="#实现代码" class="headerlink" title="实现代码"></a>实现代码</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AntiFreezeService</span> <span class="keyword">extends</span> <span class="title class_">Service</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">NOTIFICATION_ID</span> <span class="operator">=</span> <span class="number">1001</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">CHANNEL_ID</span> <span class="operator">=</span> <span class="string">&quot;anti_freeze_channel&quot;</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onCreate();</span><br><span class="line">        createNotificationChannel();</span><br><span class="line">        startForeground(NOTIFICATION_ID, createNotification());</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">createNotificationChannel</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.O) &#123;</span><br><span class="line">            <span class="type">NotificationChannel</span> <span class="variable">channel</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NotificationChannel</span>(</span><br><span class="line">                CHANNEL_ID,</span><br><span class="line">                <span class="string">&quot;防冻结服务&quot;</span>,</span><br><span class="line">                NotificationManager.IMPORTANCE_LOW</span><br><span class="line">            );</span><br><span class="line">            <span class="type">NotificationManager</span> <span class="variable">manager</span> <span class="operator">=</span> getSystemService(NotificationManager.class);</span><br><span class="line">            manager.createNotificationChannel(channel);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> Notification <span class="title function_">createNotification</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">NotificationCompat</span>.Builder(<span class="built_in">this</span>, CHANNEL_ID)</span><br><span class="line">            .setContentTitle(<span class="string">&quot;服务运行中&quot;</span>)</span><br><span class="line">            .setContentText(<span class="string">&quot;计时器正在运行&quot;</span>)</span><br><span class="line">            .setSmallIcon(R.drawable.ic_timer)</span><br><span class="line">            .build();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> IBinder <span class="title function_">onBind</span><span class="params">(Intent intent)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="优势-1"><a href="#优势-1" class="headerlink" title="优势"></a>优势</h4><ol>
+<li><strong>标准方案</strong>: Android 原生支持，API 稳定</li>
+<li><strong>适用所有应用</strong>: 不需要特殊权限</li>
+<li><strong>用户感知</strong>: 通知栏显示，用户知道服务在运行</li>
+</ol>
+<h4 id="劣势-1"><a href="#劣势-1" class="headerlink" title="劣势"></a>劣势</h4><ol>
+<li><strong>必须显示通知</strong>: 无法隐藏，占用通知栏空间</li>
+<li><strong>ADJ 较高</strong>: ADJ &#x3D; 200，虽不会被冻结但优先级低于 ContentProvider 方案</li>
+<li><strong>用户可关闭</strong>: 用户可通过通知栏停止服务</li>
+<li><strong>需要修改业务逻辑</strong>: 需要将功能迁移到服务中</li>
+</ol>
+<hr>
+<h3 id="3-3-省电白名单方案"><a href="#3-3-省电白名单方案" class="headerlink" title="3.3 省电白名单方案"></a>3.3 省电白名单方案</h3><h4 id="原理-2"><a href="#原理-2" class="headerlink" title="原理"></a>原理</h4><p>将应用加入省电白名单（Power Save Whitelist），系统会设置 <code>shouldNotFreeze = true</code>。</p>
+<h4 id="源码机制"><a href="#源码机制" class="headerlink" title="源码机制"></a>源码机制</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// OomAdjuster.java</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">int</span> <span class="title function_">computeOomAdjLSP</span><span class="params">(ProcessRecord app, ...)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!couldRecurse || !cycleReEval) &#123;</span><br><span class="line">        <span class="comment">// 如果 UID 在白名单中，设置 shouldNotFreeze</span></span><br><span class="line">        <span class="keyword">final</span> <span class="type">UidRecord</span> <span class="variable">uidRec</span> <span class="operator">=</span> app.getUidRecord();</span><br><span class="line">        app.mOptRecord.setShouldNotFreeze(uidRec != <span class="literal">null</span> &amp;&amp; uidRec.isCurAllowListed());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="实现方式"><a href="#实现方式" class="headerlink" title="实现方式"></a>实现方式</h4><p><strong>方式1: 用户手动添加</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">设置 -&gt; 电池 -&gt; 电池优化 -&gt; 选择应用 -&gt; 不优化</span><br></pre></td></tr></table></figure>
+
+<p><strong>方式2: 代码请求（需要用户授权）</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">PowerManager</span> <span class="variable">pm</span> <span class="operator">=</span> (PowerManager) getSystemService(Context.POWER_SERVICE);</span><br><span class="line"><span class="type">String</span> <span class="variable">packageName</span> <span class="operator">=</span> getPackageName();</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!pm.isIgnoringBatteryOptimizations(packageName)) &#123;</span><br><span class="line">    <span class="type">Intent</span> <span class="variable">intent</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Intent</span>();</span><br><span class="line">    intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);</span><br><span class="line">    intent.setData(Uri.parse(<span class="string">&quot;package:&quot;</span> + packageName));</span><br><span class="line">    startActivity(intent);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>方式3: 系统预配置（厂商）</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- frameworks/base/core/res/res/xml/power_profile.xml --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">array</span> <span class="attr">name</span>=<span class="string">&quot;config_allowlistedAppsForPowerWhitelist&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span>&gt;</span>com.example.app<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">array</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="优势-2"><a href="#优势-2" class="headerlink" title="优势"></a>优势</h4><ol>
+<li><strong>无需改代码</strong>: 通过配置实现</li>
+<li><strong>厂商可控</strong>: OEM 可预置白名单</li>
+<li><strong>适用所有应用</strong>: 不限系统应用</li>
+</ol>
+<h4 id="劣势-2"><a href="#劣势-2" class="headerlink" title="劣势"></a>劣势</h4><ol>
+<li><strong>需要系统配置或用户授权</strong>: 普通应用难以自动实现</li>
+<li><strong>不同 ROM 差异大</strong>: 各厂商实现可能不同</li>
+<li><strong>用户可撤销</strong>: 用户可随时移出白名单</li>
+</ol>
+<hr>
+<h3 id="3-4-Persistent-应用方案"><a href="#3-4-Persistent-应用方案" class="headerlink" title="3.4 Persistent 应用方案"></a>3.4 Persistent 应用方案</h3><h4 id="原理-3"><a href="#原理-3" class="headerlink" title="原理"></a>原理</h4><p>在 AndroidManifest.xml 中声明 <code>android:persistent=&quot;true&quot;</code>，使应用成为系统常驻进程，ADJ &#x3D; -800。</p>
+<h4 id="实现方式-1"><a href="#实现方式-1" class="headerlink" title="实现方式"></a>实现方式</h4><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">application</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">&quot;.MyApplication&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:persistent</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:label</span>=<span class="string">&quot;@string/app_name&quot;</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- ... --&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">application</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="源码机制-1"><a href="#源码机制-1" class="headerlink" title="源码机制"></a>源码机制</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// OomAdjuster.java</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">int</span> <span class="title function_">computeOomAdjLSP</span><span class="params">(ProcessRecord app, ...)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (state.getMaxAdj() &lt;= FOREGROUND_APP_ADJ) &#123;</span><br><span class="line">        <span class="comment">// Persistent 应用的 maxAdj 通常设置为 PERSISTENT_PROC_ADJ (-800)</span></span><br><span class="line">        state.setAdjType(<span class="string">&quot;fixed&quot;</span>);</span><br><span class="line">        state.setCurRawAdj(state.getMaxAdj());</span><br><span class="line">        state.setCurProcState(ActivityManager.PROCESS_STATE_PERSISTENT);</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="keyword">return</span> app.mState.getCurRawAdj();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="优势-3"><a href="#优势-3" class="headerlink" title="优势"></a>优势</h4><ol>
+<li><strong>最高优先级</strong>: ADJ &#x3D; -800，系统级保护</li>
+<li><strong>改动极小</strong>: 只需添加一个属性</li>
+<li><strong>自动重启</strong>: Crash 后系统会立即重启</li>
+</ol>
+<h4 id="劣势-3"><a href="#劣势-3" class="headerlink" title="劣势"></a>劣势</h4><ol>
+<li><strong>仅限系统签名应用</strong>: 需要 <code>android:sharedUserId=&quot;android.uid.system&quot;</code> 或平台签名</li>
+<li><strong>资源占用高</strong>: 常驻内存，占用系统资源</li>
+<li><strong>Crash 频繁重启</strong>: 可能导致系统不稳定</li>
+</ol>
+<hr>
+<h3 id="3-5-Service-绑定方案"><a href="#3-5-Service-绑定方案" class="headerlink" title="3.5 Service 绑定方案"></a>3.5 Service 绑定方案</h3><h4 id="原理-4"><a href="#原理-4" class="headerlink" title="原理"></a>原理</h4><p>通过绑定到其他不会被冻结的进程的服务，利用 <code>shouldNotFreeze</code> 的传播机制。</p>
+<h4 id="源码机制-2"><a href="#源码机制-2" class="headerlink" title="源码机制"></a>源码机制</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// OomAdjuster.java</span></span><br><span class="line"><span class="keyword">private</span> <span class="type">boolean</span> <span class="title function_">computeServiceHostOomAdjLSP</span><span class="params">(ServiceRecord s, ProcessRecord app, ...)</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// shouldNotFreeze 会通过绑定关系传播</span></span><br><span class="line">    <span class="keyword">if</span> (client.mOptRecord.shouldNotFreeze()) &#123;</span><br><span class="line">        <span class="comment">// Propagate the shouldNotFreeze flag down the bindings.</span></span><br><span class="line">        <span class="keyword">if</span> (app.mOptRecord.setShouldNotFreeze(<span class="literal">true</span>, dryRun)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="实现示例"><a href="#实现示例" class="headerlink" title="实现示例"></a>实现示例</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 服务端（不会被冻结的进程）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">KeeperService</span> <span class="keyword">extends</span> <span class="title class_">Service</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">IBinder</span> <span class="variable">binder</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Binder</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> IBinder <span class="title function_">onBind</span><span class="params">(Intent intent)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> binder;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 客户端（需要防冻结的应用）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">MyActivity</span> <span class="keyword">extends</span> <span class="title class_">Activity</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">ServiceConnection</span> <span class="variable">connection</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ServiceConnection</span>() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onServiceConnected</span><span class="params">(ComponentName name, IBinder service)</span> &#123;</span><br><span class="line">            <span class="comment">// 绑定成功，shouldNotFreeze 会传播过来</span></span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onServiceDisconnected</span><span class="params">(ComponentName name)</span> &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onStart</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onStart();</span><br><span class="line">        <span class="type">Intent</span> <span class="variable">intent</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Intent</span>(<span class="built_in">this</span>, KeeperService.class);</span><br><span class="line">        bindService(intent, connection, Context.BIND_AUTO_CREATE);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">onStop</span><span class="params">()</span> &#123;</span><br><span class="line">        unbindService(connection);</span><br><span class="line">        <span class="built_in">super</span>.onStop();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="优势-4"><a href="#优势-4" class="headerlink" title="优势"></a>优势</h4><ol>
+<li><strong>灵活性高</strong>: 可以根据需要动态绑定&#x2F;解绑</li>
+<li><strong>适用所有应用</strong>: 不需要特殊权限</li>
+</ol>
+<h4 id="劣势-4"><a href="#劣势-4" class="headerlink" title="劣势"></a>劣势</h4><ol>
+<li><strong>需要另一个进程配合</strong>: 必须有一个不被冻结的进程提供服务</li>
+<li><strong>依赖其他进程状态</strong>: 如果服务进程被杀死，保护失效</li>
+<li><strong>管理复杂</strong>: 需要处理绑定生命周期</li>
+</ol>
+<hr>
+<h2 id="4-方案对比与评估"><a href="#4-方案对比与评估" class="headerlink" title="4. 方案对比与评估"></a>4. 方案对比与评估</h2><h3 id="综合对比表"><a href="#综合对比表" class="headerlink" title="综合对比表"></a>综合对比表</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>ContentProvider</th>
+<th>前台服务</th>
+<th>省电白名单</th>
+<th>Persistent</th>
+<th>Service 绑定</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>ADJ 值</strong></td>
+<td>0</td>
+<td>200</td>
+<td>不改变（设置 shouldNotFreeze）</td>
+<td>-800</td>
+<td>继承客户端</td>
+</tr>
+<tr>
+<td><strong>防冻结效果</strong></td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>防 LMK 效果</strong></td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>权限要求</strong></td>
+<td>系统权限</td>
+<td>无</td>
+<td>用户授权&#x2F;系统配置</td>
+<td>系统签名</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>适用范围</strong></td>
+<td>系统应用</td>
+<td>所有应用</td>
+<td>所有应用</td>
+<td>系统签名应用</td>
+<td>所有应用</td>
+</tr>
+<tr>
+<td><strong>改动成本</strong></td>
+<td>⭐</td>
+<td>⭐⭐⭐</td>
+<td>⭐</td>
+<td>⭐</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>维护成本</strong></td>
+<td>⭐</td>
+<td>⭐⭐</td>
+<td>⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>用户感知</strong></td>
+<td>无</td>
+<td>有（通知）</td>
+<td>无</td>
+<td>无</td>
+<td>无</td>
+</tr>
+<tr>
+<td><strong>可控性</strong></td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>资源占用</strong></td>
+<td>低</td>
+<td>低</td>
+<td>无额外占用</td>
+<td>高（常驻）</td>
+<td>低</td>
+</tr>
+<tr>
+<td><strong>ROM 兼容性</strong></td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+</tbody></table>
+<h3 id="详细评估"><a href="#详细评估" class="headerlink" title="详细评估"></a>详细评估</h3><h4 id="4-1-ContentProvider-方案"><a href="#4-1-ContentProvider-方案" class="headerlink" title="4.1 ContentProvider 方案"></a>4.1 ContentProvider 方案</h4><p><strong>适用场景</strong>:</p>
+<ul>
+<li>✅ 系统应用（具备 ACCESS_CONTENT_PROVIDERS_EXTERNALLY 权限）</li>
+<li>✅ 需要最高优先级（ADJ &#x3D; 0）</li>
+<li>✅ 希望完全自主控制启停</li>
+<li>✅ 无需用户感知</li>
+</ul>
+<p><strong>不适用场景</strong>:</p>
+<ul>
+<li>❌ 第三方应用（无权限）</li>
+<li>❌ 需要跨进程共享状态</li>
+</ul>
+<p><strong>技术特点</strong>:</p>
+<ul>
+<li>优先级最高，等同前台应用</li>
+<li>完全应用内部控制，无需外部配合</li>
+<li>代码简单，易于维护</li>
+<li>支持引用计数，可多场景使用</li>
+</ul>
+<p><strong>推荐指数</strong>: ⭐⭐⭐⭐⭐（系统应用首选）</p>
+<hr>
+<h4 id="4-2-前台服务方案"><a href="#4-2-前台服务方案" class="headerlink" title="4.2 前台服务方案"></a>4.2 前台服务方案</h4><p><strong>适用场景</strong>:</p>
+<ul>
+<li>✅ 所有类型应用</li>
+<li>✅ 需要用户知晓服务状态</li>
+<li>✅ 可以接受通知栏显示</li>
+</ul>
+<p><strong>不适用场景</strong>:</p>
+<ul>
+<li>❌ 需要隐藏运行</li>
+<li>❌ 对通知栏占用敏感</li>
+</ul>
+<p><strong>技术特点</strong>:</p>
+<ul>
+<li>Android 标准方案，API 稳定</li>
+<li>用户可见，体验较好</li>
+<li>ADJ &#x3D; 200，优先级较高但不如 ContentProvider</li>
+</ul>
+<p><strong>推荐指数</strong>: ⭐⭐⭐⭐（第三方应用首选）</p>
+<hr>
+<h4 id="4-3-省电白名单方案"><a href="#4-3-省电白名单方案" class="headerlink" title="4.3 省电白名单方案"></a>4.3 省电白名单方案</h4><p><strong>适用场景</strong>:</p>
+<ul>
+<li>✅ OEM 厂商预置应用</li>
+<li>✅ 客供应用（厂商配置白名单）</li>
+<li>✅ 需要用户主动授权的场景</li>
+</ul>
+<p><strong>不适用场景</strong>:</p>
+<ul>
+<li>❌ 需要自动实现的场景</li>
+<li>❌ 对不同 ROM 兼容性要求高</li>
+</ul>
+<p><strong>技术特点</strong>:</p>
+<ul>
+<li>无需修改应用代码</li>
+<li>厂商可控，适合客供场景</li>
+<li>依赖系统配置或用户授权</li>
+</ul>
+<p><strong>推荐指数</strong>: ⭐⭐⭐（辅助方案）</p>
+<hr>
+<h4 id="4-4-Persistent-方案"><a href="#4-4-Persistent-方案" class="headerlink" title="4.4 Persistent 方案"></a>4.4 Persistent 方案</h4><p><strong>适用场景</strong>:</p>
+<ul>
+<li>✅ 核心系统服务</li>
+<li>✅ 需要系统级保护</li>
+<li>✅ Crash 后必须立即重启</li>
+</ul>
+<p><strong>不适用场景</strong>:</p>
+<ul>
+<li>❌ 非系统签名应用</li>
+<li>❌ 对资源占用敏感</li>
+<li>❌ 应用不够稳定（频繁 Crash）</li>
+</ul>
+<p><strong>技术特点</strong>:</p>
+<ul>
+<li>最高优先级（ADJ &#x3D; -800）</li>
+<li>系统级保护，不会被杀死</li>
+<li>资源占用高，影响系统稳定性</li>
+</ul>
+<p><strong>推荐指数</strong>: ⭐⭐（仅限核心系统服务）</p>
+<hr>
+<h4 id="4-5-Service-绑定方案"><a href="#4-5-Service-绑定方案" class="headerlink" title="4.5 Service 绑定方案"></a>4.5 Service 绑定方案</h4><p><strong>适用场景</strong>:</p>
+<ul>
+<li>✅ 多进程应用</li>
+<li>✅ 已有不被冻结的进程可提供服务</li>
+<li>✅ 需要灵活控制</li>
+</ul>
+<p><strong>不适用场景</strong>:</p>
+<ul>
+<li>❌ 单进程应用</li>
+<li>❌ 无法保证服务进程不被杀死</li>
+<li>❌ 希望简单实现</li>
+</ul>
+<p><strong>技术特点</strong>:</p>
+<ul>
+<li>利用 shouldNotFreeze 传播机制</li>
+<li>依赖其他进程状态</li>
+<li>管理复杂，需要处理生命周期</li>
+</ul>
+<p><strong>推荐指数</strong>: ⭐⭐（特殊场景）</p>
+<hr>
+<h2 id="5-实践建议"><a href="#5-实践建议" class="headerlink" title="5. 实践建议"></a>5. 实践建议</h2><h3 id="5-1-方案选择决策树"><a href="#5-1-方案选择决策树" class="headerlink" title="5.1 方案选择决策树"></a>5.1 方案选择决策树</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">┌─ 是系统应用？</span><br><span class="line">│  ├─ 是 ──→ 使用 ContentProvider 方案（最优）</span><br><span class="line">│  └─ 否 ──┬─ 可以显示通知？</span><br><span class="line">│           ├─ 是 ──→ 使用前台服务方案</span><br><span class="line">│           └─ 否 ──┬─ 是客供应用？</span><br><span class="line">│                    ├─ 是 ──→ 联系厂商加入省电白名单</span><br><span class="line">│                    └─ 否 ──→ 考虑业务重构或使用前台服务</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-系统应用推荐实践"><a href="#5-2-系统应用推荐实践" class="headerlink" title="5.2 系统应用推荐实践"></a>5.2 系统应用推荐实践</h3><p><strong>步骤1</strong>: 添加 ContentProvider</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 创建 AdjAdjuster.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AdjAdjuster</span> <span class="keyword">extends</span> <span class="title class_">ContentProvider</span> &#123;</span><br><span class="line">    <span class="comment">// ... (完整代码见 3.1 节)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤2</strong>: 配置 AndroidManifest.xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">provider</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">&quot;.provider.AdjAdjuster&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:authorities</span>=<span class="string">&quot;$&#123;applicationId&#125;.provider.adjuster&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:exported</span>=<span class="string">&quot;false&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤3</strong>: 在合适的时机调用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CountdownService</span> <span class="keyword">extends</span> <span class="title class_">Service</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">KEY_SERVICE</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onCreate();</span><br><span class="line">        AdjAdjuster.onStart(KEY_SERVICE);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onDestroy</span><span class="params">()</span> &#123;</span><br><span class="line">        AdjAdjuster.onStop(KEY_SERVICE);</span><br><span class="line">        <span class="built_in">super</span>.onDestroy();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-第三方应用推荐实践"><a href="#5-3-第三方应用推荐实践" class="headerlink" title="5.3 第三方应用推荐实践"></a>5.3 第三方应用推荐实践</h3><p><strong>步骤1</strong>: 使用前台服务</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TimerService</span> <span class="keyword">extends</span> <span class="title class_">Service</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onCreate</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">super</span>.onCreate();</span><br><span class="line">        startForeground(NOTIFICATION_ID, createNotification());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤2</strong>: 提供用户手动加入白名单的入口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">requestBatteryOptimizationExemption</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">PowerManager</span> <span class="variable">pm</span> <span class="operator">=</span> (PowerManager) getSystemService(Context.POWER_SERVICE);</span><br><span class="line">    <span class="keyword">if</span> (!pm.isIgnoringBatteryOptimizations(getPackageName())) &#123;</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">AlertDialog</span>.Builder(<span class="built_in">this</span>)</span><br><span class="line">            .setTitle(<span class="string">&quot;电池优化&quot;</span>)</span><br><span class="line">            .setMessage(<span class="string">&quot;为保证计时器正常运行，建议关闭电池优化&quot;</span>)</span><br><span class="line">            .setPositiveButton(<span class="string">&quot;去设置&quot;</span>, (dialog, which) -&gt; &#123;</span><br><span class="line">                <span class="type">Intent</span> <span class="variable">intent</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Intent</span>();</span><br><span class="line">                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);</span><br><span class="line">                intent.setData(Uri.parse(<span class="string">&quot;package:&quot;</span> + getPackageName()));</span><br><span class="line">                startActivity(intent);</span><br><span class="line">            &#125;)</span><br><span class="line">            .setNegativeButton(<span class="string">&quot;取消&quot;</span>, <span class="literal">null</span>)</span><br><span class="line">            .show();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-调试方法"><a href="#5-4-调试方法" class="headerlink" title="5.4 调试方法"></a>5.4 调试方法</h3><p><strong>查看进程 ADJ</strong>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看所有进程的 ADJ</span></span><br><span class="line">adb shell dumpsys activity processes | grep -A 5 <span class="string">&quot;com.your.package&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时监控 ADJ 变化（方式1：循环查询）</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">true</span>; <span class="keyword">do</span> adb shell dumpsys activity processes | grep -A 5 com.your.package; <span class="built_in">sleep</span> 1; <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者使用 watch 命令（如果系统支持）</span></span><br><span class="line">watch -n 1 <span class="string">&quot;adb shell dumpsys activity processes | grep -A 5 com.your.package&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>查看冻结状态</strong>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看所有冻结的进程（在 CachedAppOptimizer 部分）</span></span><br><span class="line">adb shell dumpsys activity | grep -A 20 <span class="string">&quot;Apps frozen&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 输出示例：</span></span><br><span class="line"><span class="comment">#   Apps frozen: 3</span></span><br><span class="line"><span class="comment">#     1234567890: 12345 com.example.app1</span></span><br><span class="line"><span class="comment">#     1234567891: 12346 com.example.app2 (sticky)</span></span><br><span class="line"><span class="comment">#     1234567892: 12347 com.example.app3</span></span><br><span class="line"><span class="comment"># 格式：&lt;冻结时间戳&gt;: &lt;PID&gt; &lt;进程名&gt; [(sticky)]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者查看完整的 CachedAppOptimizer 信息</span></span><br><span class="line">adb shell dumpsys activity | grep -A 100 <span class="string">&quot;CachedAppOptimizer&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 手动冻结/解冻进程（测试用）</span></span><br><span class="line">adb shell am freeze &lt;package-name&gt;</span><br><span class="line">adb shell am unfreeze &lt;package-name&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>查看 OOM Adj 日志</strong>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb logcat -s ActivityManager:D | grep -E <span class="string">&quot;freezing|unfreezing|ext-provider&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-5-常见问题"><a href="#5-5-常见问题" class="headerlink" title="5.5 常见问题"></a>5.5 常见问题</h3><p><strong>Q1: ContentProvider 方案会增加内存占用吗？</strong></p>
+<p>A: 几乎不会。Provider 本身是空实现，只是通过外部句柄机制改变了 ADJ 值，不会额外占用内存。</p>
+<p><strong>Q2: 忘记调用 onStop() 会有什么影响？</strong></p>
+<p>A: 应用会一直保持 ADJ &#x3D; 0 的高优先级，占用系统资源。建议使用 try-finally 或在组件生命周期方法中确保调用。</p>
+<p><strong>Q3: ContentProvider 方案在 Android 12+ 上是否仍然有效？</strong></p>
+<p>A: 是的。该机制是 AOSP 的基础设计，在 Android 12、13、14 上均有效。</p>
+<p><strong>Q4: 可以同时使用多个防冻结方案吗？</strong></p>
+<p>A: 可以，但没有必要。系统会取最低的 ADJ 值，使用 ContentProvider 方案已经是最高优先级。</p>
+<hr>
+<h2 id="6-参考文献"><a href="#6-参考文献" class="headerlink" title="6. 参考文献"></a>6. 参考文献</h2><h3 id="源码文件"><a href="#源码文件" class="headerlink" title="源码文件"></a>源码文件</h3><ul>
+<li><code>frameworks/base/services/core/java/com/android/server/am/CachedAppOptimizer.java</code></li>
+<li><code>frameworks/base/services/core/java/com/android/server/am/OomAdjuster.java</code></li>
+<li><code>frameworks/base/services/core/java/com/android/server/am/ContentProviderHelper.java</code></li>
+<li><code>frameworks/base/services/core/java/com/android/server/am/ContentProviderRecord.java</code></li>
+<li><code>frameworks/base/services/core/java/com/android/server/am/ProcessList.java</code></li>
+</ul>
+<h3 id="相关文档"><a href="#相关文档" class="headerlink" title="相关文档"></a>相关文档</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://developer.android.com/guide/components/activities/process-lifecycle">Android Process and Application Lifecycle</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.android.com/topic/performance/appstandby">App Standby Buckets</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.android.com/guide/components/foreground-services">Foreground Services</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/zhzhangnews/article/details/110474461">OOM Adjuster 详解</a></li>
+</ul>
+<h3 id="相关配置"><a href="#相关配置" class="headerlink" title="相关配置"></a>相关配置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 关键常量</span></span><br><span class="line">ProcessList.CACHED_APP_MIN_ADJ = <span class="number">900</span>          <span class="comment">// 冻结阈值</span></span><br><span class="line">ProcessList.FOREGROUND_APP_ADJ = <span class="number">0</span>            <span class="comment">// 前台应用 ADJ</span></span><br><span class="line">ProcessList.PERCEPTIBLE_APP_ADJ = <span class="number">200</span>         <span class="comment">// 可感知应用 ADJ</span></span><br><span class="line">ProcessList.PERSISTENT_PROC_ADJ = -<span class="number">800</span>        <span class="comment">// Persistent 应用 ADJ</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 默认冻结延迟</span></span><br><span class="line">CachedAppOptimizer.DEFAULT_FREEZER_DEBOUNCE_TIMEOUT = <span class="number">600_000L</span>  <span class="comment">// 10 分钟</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>应用冻结机制是 Android 系统为优化资源使用而引入的重要特性。对于需要后台长期运行的应用，选择合适的防冻结方案至关重要：</p>
+<ol>
+<li><strong>系统应用</strong>: 优先使用 <strong>ContentProvider 方案</strong>，改动小、效果好、完全可控</li>
+<li><strong>第三方应用</strong>: 使用 <strong>前台服务方案</strong>，符合 Android 规范，用户体验好</li>
+<li><strong>客供应用</strong>: 可联系厂商加入 <strong>省电白名单</strong>，无需修改代码</li>
+<li><strong>核心系统服务</strong>: 考虑 <strong>Persistent 方案</strong>，但需谨慎使用</li>
+</ol>
+<p>无论选择哪种方案，都应该充分理解其原理和限制，在保证功能的同时，兼顾系统资源和用户体验。</p>
+<hr>
+<p><strong>文档版本</strong>: 1.0<br><strong>最后更新</strong>: 2025-01-15<br><strong>作者</strong>: Android Framework 团队<br><strong>适用版本</strong>: Android 11+</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io">BravestSnail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io/2025/10/26/note/Android/Android%E5%BA%94%E7%94%A8%E5%86%BB%E7%BB%93%E6%9C%BA%E5%88%B6%E4%B8%8E%E9%98%B2%E5%86%BB%E7%BB%93%E6%96%B9%E6%A1%88%E5%88%86%E6%9E%90/">https://bravestsnail.github.io/2025/10/26/note/Android/Android%E5%BA%94%E7%94%A8%E5%86%BB%E7%BB%93%E6%9C%BA%E5%88%B6%E4%B8%8E%E9%98%B2%E5%86%BB%E7%BB%93%E6%96%B9%E6%A1%88%E5%88%86%E6%9E%90/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://bravestsnail.github.io" target="_blank">BravestSnail's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/10/26/learn/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" title="设计模式"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">设计模式</div></div><div class="info-2"><div class="info-item-1">策略模式对于类行为的处理，过去我们是将其抽象成一个接口，有相同行为的类实现同样的接口。这样做产生了一个问题，假设有一天你需要对行为作出修改，你需要对所有实现行为接口的类作出改变。 对此，我们应该将行为从类中剥离出来，抽象出单独的Behavior类去实现接口，在类中去依赖Behavior类即可。 这样即使我们需要新的行为实现，只需要替换Behavior类即可，不需要影响类本身的代码。 flowchart LR     s([开始])-->f1{if条件}     f1-->|true|n1[if语句块]-->e([结束])     f1-->|false|f2{else if条件}     f2-->|true|n2[else if语句块]-->e     f2-->|false|n3[else语句块]-->e  装饰模式开闭原则类应该对扩展开放，对修改关闭。 </div></div></div></a><a class="pagination-related" href="/2025/10/26/note/Android/Android%E7%9F%A5%E8%AF%86%E4%BD%93%E7%B3%BB/" title="Android知识体系"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Android知识体系</div></div><div class="info-2"><div class="info-item-1">JavaJava基础 集合 反射 泛型 异常机制  经典文章常见问题 HashMap讲一下，数据结构、hash过程、扩容、加载因子为何是0.75等。 LRU如何实现的？LinkedHashMap如何实现的？LinkedHashMap是否线程安全？如何实现线程安全？有序还是无序？ ThreadLocal干嘛的？用法和原理。 泛型擦除，为何会有擦除？擦除的时机、为何会有协变和逆变  Java并发编程 线程的生命周期 线程池参数及常用线程池 synchronized和volatile区别  经典文章Java并发编程：volatile关键字解析 常见问题JVM JVM内存模型 类加载机制。 类的加载过程（类的生命周期）  经典文章 Java虚拟机（JVM）你只要看这一篇就够了！  常见问题 1、内存回收机制与GC算法(各种算法的优缺点以及应用场景)；2、内存泄露场景及避免和解决方法  AndroidAndroid系统 Android平台架构 进程间通信方式 Binder机制 Android系统启动流程  经典文章常见问题： 1、Android系统启动流程 ？2、Jvm、Art 和...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">86</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Android-%E5%BA%94%E7%94%A8%E5%86%BB%E7%BB%93%E6%9C%BA%E5%88%B6%E4%B8%8E%E9%98%B2%E5%86%BB%E7%BB%93%E6%96%B9%E6%A1%88%E5%88%86%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">Android 应用冻结机制与防冻结方案分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-number">1.1.</span> <span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.2.</span> <span class="toc-text">1. 背景介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%9C%BA%E6%99%AF"><span class="toc-number">1.2.1.</span> <span class="toc-text">问题场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%BA%94%E7%94%A8%E5%86%BB%E7%BB%93%E6%9C%BA%E5%88%B6%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.3.</span> <span class="toc-text">2. 应用冻结机制详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%BA%94%E7%94%A8%E5%86%BB%E7%BB%93"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1 什么是应用冻结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%86%BB%E7%BB%93%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2 冻结触发条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-OOM-Adjustment-%E6%9C%BA%E5%88%B6"><span class="toc-number">1.3.3.</span> <span class="toc-text">2.3 OOM Adjustment 机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%86%BB%E7%BB%93%E6%B5%81%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-number">1.3.4.</span> <span class="toc-text">2.4 冻结流程源码分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A41-OomAdjuster-%E8%AE%A1%E7%AE%97-ADJ"><span class="toc-number">1.3.4.1.</span> <span class="toc-text">步骤1: OomAdjuster 计算 ADJ</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AD%A5%E9%AA%A42-CachedAppOptimizer-%E6%89%A7%E8%A1%8C%E5%86%BB%E7%BB%93"><span class="toc-number">1.3.4.2.</span> <span class="toc-text">步骤2: CachedAppOptimizer 执行冻结</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%98%B2%E5%86%BB%E7%BB%93%E6%96%B9%E6%A1%88%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.4.</span> <span class="toc-text">3. 防冻结方案详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-ContentProvider-%E6%96%B9%E6%A1%88"><span class="toc-number">1.4.1.</span> <span class="toc-text">3.1 ContentProvider 方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">1.4.1.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%9C%BA%E5%88%B6"><span class="toc-number">1.4.1.2.</span> <span class="toc-text">关键机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81"><span class="toc-number">1.4.1.3.</span> <span class="toc-text">完整实现代码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF"><span class="toc-number">1.4.1.4.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%A3%E5%8A%BF"><span class="toc-number">1.4.1.5.</span> <span class="toc-text">劣势</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%89%8D%E5%8F%B0%E6%9C%8D%E5%8A%A1%E6%96%B9%E6%A1%88"><span class="toc-number">1.4.2.</span> <span class="toc-text">3.2 前台服务方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-1"><span class="toc-number">1.4.2.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81"><span class="toc-number">1.4.2.2.</span> <span class="toc-text">实现代码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF-1"><span class="toc-number">1.4.2.3.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%A3%E5%8A%BF-1"><span class="toc-number">1.4.2.4.</span> <span class="toc-text">劣势</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E7%9C%81%E7%94%B5%E7%99%BD%E5%90%8D%E5%8D%95%E6%96%B9%E6%A1%88"><span class="toc-number">1.4.3.</span> <span class="toc-text">3.3 省电白名单方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-2"><span class="toc-number">1.4.3.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E6%9C%BA%E5%88%B6"><span class="toc-number">1.4.3.2.</span> <span class="toc-text">源码机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="toc-number">1.4.3.3.</span> <span class="toc-text">实现方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF-2"><span class="toc-number">1.4.3.4.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%A3%E5%8A%BF-2"><span class="toc-number">1.4.3.5.</span> <span class="toc-text">劣势</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-Persistent-%E5%BA%94%E7%94%A8%E6%96%B9%E6%A1%88"><span class="toc-number">1.4.4.</span> <span class="toc-text">3.4 Persistent 应用方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-3"><span class="toc-number">1.4.4.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F-1"><span class="toc-number">1.4.4.2.</span> <span class="toc-text">实现方式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E6%9C%BA%E5%88%B6-1"><span class="toc-number">1.4.4.3.</span> <span class="toc-text">源码机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF-3"><span class="toc-number">1.4.4.4.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%A3%E5%8A%BF-3"><span class="toc-number">1.4.4.5.</span> <span class="toc-text">劣势</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-Service-%E7%BB%91%E5%AE%9A%E6%96%B9%E6%A1%88"><span class="toc-number">1.4.5.</span> <span class="toc-text">3.5 Service 绑定方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-4"><span class="toc-number">1.4.5.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E6%9C%BA%E5%88%B6-2"><span class="toc-number">1.4.5.2.</span> <span class="toc-text">源码机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.4.5.3.</span> <span class="toc-text">实现示例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF-4"><span class="toc-number">1.4.5.4.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%A3%E5%8A%BF-4"><span class="toc-number">1.4.5.5.</span> <span class="toc-text">劣势</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94%E4%B8%8E%E8%AF%84%E4%BC%B0"><span class="toc-number">1.5.</span> <span class="toc-text">4. 方案对比与评估</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%BC%E5%90%88%E5%AF%B9%E6%AF%94%E8%A1%A8"><span class="toc-number">1.5.1.</span> <span class="toc-text">综合对比表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%A6%E7%BB%86%E8%AF%84%E4%BC%B0"><span class="toc-number">1.5.2.</span> <span class="toc-text">详细评估</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-ContentProvider-%E6%96%B9%E6%A1%88"><span class="toc-number">1.5.2.1.</span> <span class="toc-text">4.1 ContentProvider 方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-%E5%89%8D%E5%8F%B0%E6%9C%8D%E5%8A%A1%E6%96%B9%E6%A1%88"><span class="toc-number">1.5.2.2.</span> <span class="toc-text">4.2 前台服务方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-3-%E7%9C%81%E7%94%B5%E7%99%BD%E5%90%8D%E5%8D%95%E6%96%B9%E6%A1%88"><span class="toc-number">1.5.2.3.</span> <span class="toc-text">4.3 省电白名单方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-4-Persistent-%E6%96%B9%E6%A1%88"><span class="toc-number">1.5.2.4.</span> <span class="toc-text">4.4 Persistent 方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-5-Service-%E7%BB%91%E5%AE%9A%E6%96%B9%E6%A1%88"><span class="toc-number">1.5.2.5.</span> <span class="toc-text">4.5 Service 绑定方案</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.6.</span> <span class="toc-text">5. 实践建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%96%B9%E6%A1%88%E9%80%89%E6%8B%A9%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">1.6.1.</span> <span class="toc-text">5.1 方案选择决策树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%B3%BB%E7%BB%9F%E5%BA%94%E7%94%A8%E6%8E%A8%E8%8D%90%E5%AE%9E%E8%B7%B5"><span class="toc-number">1.6.2.</span> <span class="toc-text">5.2 系统应用推荐实践</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%94%E7%94%A8%E6%8E%A8%E8%8D%90%E5%AE%9E%E8%B7%B5"><span class="toc-number">1.6.3.</span> <span class="toc-text">5.3 第三方应用推荐实践</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E8%B0%83%E8%AF%95%E6%96%B9%E6%B3%95"><span class="toc-number">1.6.4.</span> <span class="toc-text">5.4 调试方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">1.6.5.</span> <span class="toc-text">5.5 常见问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%8F%82%E8%80%83%E6%96%87%E7%8C%AE"><span class="toc-number">1.7.</span> <span class="toc-text">6. 参考文献</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E6%96%87%E4%BB%B6"><span class="toc-number">1.7.1.</span> <span class="toc-text">源码文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%B8%E5%85%B3%E6%96%87%E6%A1%A3"><span class="toc-number">1.7.2.</span> <span class="toc-text">相关文档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="toc-number">1.7.3.</span> <span class="toc-text">相关配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.8.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/IO%E6%A8%A1%E5%9E%8B/" title="IO模型">IO模型</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Java%E5%B9%B6%E5%8F%91/" title="Java并发">Java并发</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Linux/%E5%9C%A8U-Boot%E7%8E%AF%E5%A2%83%E4%B8%8B%E6%9F%A5%E7%9C%8BU%E7%9B%98%E6%96%87%E4%BB%B6/" title="在U Boot环境下查看U盘文件">在U Boot环境下查看U盘文件</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Windows/wsl%E4%BB%A3%E7%90%86/" title="wsl代理">wsl代理</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Android/%E6%9D%82%E9%A1%B9/Android%20%E7%B3%BB%E7%BB%9F%E5%AF%BC%E8%88%AA%E6%A0%8F%E6%A8%A1%E5%BC%8F%E5%88%87%E6%8D%A2%E4%B8%8E%E6%9F%A5%E8%AF%A2/" title="Android 系统导航栏模式切换与查询">Android 系统导航栏模式切换与查询</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js"></script></div></body></html>

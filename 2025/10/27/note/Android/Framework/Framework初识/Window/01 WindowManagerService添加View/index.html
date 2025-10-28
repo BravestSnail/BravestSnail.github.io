@@ -1,0 +1,286 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>01 WindowManagerService添加View | BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="我来分析应用进程的 WindowManager 如何调用到 WindowManagerService.addWindow() 的完整调用链，并绘制时序图。 应用进程 WindowManager 到 WindowManagerService.addWindow() 调用链分析核心调用流程sequenceDiagram     participant App as 应用进程     participa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="01 WindowManagerService添加View">
+<meta property="og:url" content="https://bravestsnail.github.io/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/01%20WindowManagerService%E6%B7%BB%E5%8A%A0View/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:description" content="我来分析应用进程的 WindowManager 如何调用到 WindowManagerService.addWindow() 的完整调用链，并绘制时序图。 应用进程 WindowManager 到 WindowManagerService.addWindow() 调用链分析核心调用流程sequenceDiagram     participant App as 应用进程     participa">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:published_time" content="2025-10-27T05:06:11.768Z">
+<meta property="article:modified_time" content="2025-10-27T16:42:15.966Z">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "01 WindowManagerService添加View",
+  "url": "https://bravestsnail.github.io/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/01%20WindowManagerService%E6%B7%BB%E5%8A%A0View/",
+  "image": "https://bravestsnail.github.io/images/avatar.png",
+  "datePublished": "2025-10-27T05:06:11.768Z",
+  "dateModified": "2025-10-27T16:42:15.966Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "BravestSnail",
+      "url": "https://bravestsnail.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/01%20WindowManagerService%E6%B7%BB%E5%8A%A0View/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '01 WindowManagerService添加View',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">86</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/posts/"><i class="fa-fw fas fa-archive"></i><span> Posts</span></a></div><div class="menus_item"><a class="site-page" href="/learn/"><i class="fa-fw fas fa-book"></i><span> Learn</span></a></div><div class="menus_item"><a class="site-page" href="/note/"><i class="fa-fw fas fa-sticky-note"></i><span> Note</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">01 WindowManagerService添加View</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/posts/"><i class="fa-fw fas fa-archive"></i><span> Posts</span></a></div><div class="menus_item"><a class="site-page" href="/learn/"><i class="fa-fw fas fa-book"></i><span> Learn</span></a></div><div class="menus_item"><a class="site-page" href="/note/"><i class="fa-fw fas fa-sticky-note"></i><span> Note</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">01 WindowManagerService添加View</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-10-27T05:06:11.768Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-27T16:42:15.966Z" title="更新于 2025-10-28 00:42:15">2025-10-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/">note</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/Android/Framework/">Framework</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/">Framework初识</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/">Window</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>我来分析应用进程的 WindowManager 如何调用到 WindowManagerService.addWindow() 的完整调用链，并绘制时序图。</p>
+<h2 id="应用进程-WindowManager-到-WindowManagerService-addWindow-调用链分析"><a href="#应用进程-WindowManager-到-WindowManagerService-addWindow-调用链分析" class="headerlink" title="应用进程 WindowManager 到 WindowManagerService.addWindow() 调用链分析"></a>应用进程 WindowManager 到 WindowManagerService.addWindow() 调用链分析</h2><h3 id="核心调用流程"><a href="#核心调用流程" class="headerlink" title="核心调用流程"></a>核心调用流程</h3><pre class="mermaid">sequenceDiagram
+    participant App as 应用进程
+    participant WMI as WindowManagerImpl
+    participant WMG as WindowManagerGlobal
+    participant VRI as ViewRootImpl
+    participant Session as Session
+    participant WMS as WindowManagerService
+    
+    App->>WMI: 1. addView(view, params)
+    Note over WMI: applyTokens(params)<br/>设置window token等
+    WMI->>WMG: 2. addView(view, params, display, parentWindow, userId)
+    
+    WMG->>WMG: 3. 参数验证和准备
+    Note over WMG: 检查view不为null<br/>检查params类型<br/>设置硬件加速标志
+    
+    WMG->>VRI: 4. new ViewRootImpl(context, display)
+    Note over VRI: 创建ViewRootImpl实例
+    
+    WMG->>WMG: 5. 添加到全局数组
+    Note over WMG: mViews.add(view)<br/>mRoots.add(root)<br/>mParams.add(wparams)
+    
+    WMG->>VRI: 6. root.setView(view, wparams, panelParentView, userId)
+    
+    VRI->>VRI: 7. setView内部处理
+    Note over VRI: 设置mView, mAttrs<br/>requestLayout()<br/>创建InputChannel
+    
+    VRI->>Session: 8. mWindowSession.addToDisplayAsUser(...)
+    Note over Session: 通过IWindowSession接口调用
+    
+    Session->>WMS: 9. mService.addWindow(this, window, attrs, ...)
+    Note over WMS: 最终到达目标方法
+    
+    WMS->>WMS: 10. addWindow内部逻辑
+    Note over WMS: 权限检查<br/>创建WindowState<br/>添加到WindowManager</pre>
+
+<h3 id="详细代码调用链"><a href="#详细代码调用链" class="headerlink" title="详细代码调用链"></a>详细代码调用链</h3><p><strong>1. 应用调用 WindowManagerImpl.addView()</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// WindowManagerImpl.java</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addView</span><span class="params">(<span class="meta">@NonNull</span> View view, <span class="meta">@NonNull</span> ViewGroup.LayoutParams params)</span> &#123;</span><br><span class="line">    applyTokens(params);</span><br><span class="line">    mGlobal.addView(view, params, mContext.getDisplayNoVerify(), mParentWindow,</span><br><span class="line">            mContext.getUserId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. WindowManagerGlobal.addView() 处理</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// WindowManagerGlobal.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addView</span><span class="params">(View view, ViewGroup.LayoutParams params,</span></span><br><span class="line"><span class="params">        Display display, Window parentWindow, <span class="type">int</span> userId)</span> &#123;</span><br><span class="line">    <span class="comment">// 参数验证...</span></span><br><span class="line">    <span class="keyword">final</span> WindowManager.<span class="type">LayoutParams</span> <span class="variable">wparams</span> <span class="operator">=</span> (WindowManager.LayoutParams) params;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 创建ViewRootImpl</span></span><br><span class="line">    root = <span class="keyword">new</span> <span class="title class_">ViewRootImpl</span>(view.getContext(), display);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 添加到全局数组</span></span><br><span class="line">    mViews.add(view);</span><br><span class="line">    mRoots.add(root);</span><br><span class="line">    mParams.add(wparams);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 调用ViewRootImpl.setView()</span></span><br><span class="line">    root.setView(view, wparams, panelParentView, userId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. ViewRootImpl.setView() 核心处理</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ViewRootImpl.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setView</span><span class="params">(View view, WindowManager.LayoutParams attrs, View panelParentView, <span class="type">int</span> userId)</span> &#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="built_in">this</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mView == <span class="literal">null</span>) &#123;</span><br><span class="line">            mView = view;</span><br><span class="line">            mWindowAttributes.copyFrom(attrs);</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 请求首次布局</span></span><br><span class="line">            requestLayout();</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 创建InputChannel</span></span><br><span class="line">            <span class="type">InputChannel</span> <span class="variable">inputChannel</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">if</span> ((mWindowAttributes.inputFeatures &amp; INPUT_FEATURE_NO_INPUT_CHANNEL) == <span class="number">0</span>) &#123;</span><br><span class="line">                inputChannel = <span class="keyword">new</span> <span class="title class_">InputChannel</span>();</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 调用Session.addToDisplayAsUser()</span></span><br><span class="line">            res = mWindowSession.addToDisplayAsUser(mWindow, mWindowAttributes,</span><br><span class="line">                    getHostVisibility(), mDisplay.getDisplayId(), userId,</span><br><span class="line">                    mInsetsController.getRequestedVisibleTypes(), inputChannel, ...);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>4. Session.addToDisplayAsUser() 代理</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Session.java</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">addToDisplayAsUser</span><span class="params">(IWindow window, WindowManager.LayoutParams attrs,</span></span><br><span class="line"><span class="params">        <span class="type">int</span> viewVisibility, <span class="type">int</span> displayId, <span class="type">int</span> userId, <span class="meta">@InsetsType</span> <span class="type">int</span> requestedVisibleTypes,</span></span><br><span class="line"><span class="params">        InputChannel outInputChannel, ...)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> mService.addWindow(<span class="built_in">this</span>, window, attrs, viewVisibility, displayId, userId,</span><br><span class="line">            requestedVisibleTypes, outInputChannel, ...);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>5. WindowManagerService.addWindow() 最终实现</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// WindowManagerService.java</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">addWindow</span><span class="params">(Session session, IWindow client, LayoutParams attrs, <span class="type">int</span> viewVisibility,</span></span><br><span class="line"><span class="params">        <span class="type">int</span> displayId, <span class="type">int</span> requestUserId, <span class="meta">@InsetsType</span> <span class="type">int</span> requestedVisibleTypes, ...)</span> &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 权限检查</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">res</span> <span class="operator">=</span> mPolicy.checkAddPermission(attrs.type, isRoundedCornerOverlay, attrs.packageName, appOp);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 创建WindowState</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">WindowState</span> <span class="variable">win</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">WindowState</span>(<span class="built_in">this</span>, session, client, token, parentWindow,</span><br><span class="line">            appOp[<span class="number">0</span>], attrs, viewVisibility, session.mUid, userId,</span><br><span class="line">            session.mCanAddInternalSystemWindow);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 添加到WindowManager</span></span><br><span class="line">    win.mToken.addWindow(win);</span><br><span class="line">    displayPolicy.addWindowLw(win, attrs);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="关键组件说明"><a href="#关键组件说明" class="headerlink" title="关键组件说明"></a>关键组件说明</h3><p><strong>WindowManagerGlobal</strong>：</p>
+<ul>
+<li>全局单例，管理所有窗口</li>
+<li>维护 mViews、mRoots、mParams 三个数组</li>
+<li>负责创建 ViewRootImpl 实例</li>
+</ul>
+<p><strong>ViewRootImpl</strong>：</p>
+<ul>
+<li>每个窗口的根视图容器</li>
+<li>负责窗口的布局、绘制、输入事件处理</li>
+<li>与 WindowManagerService 通信的桥梁</li>
+</ul>
+<p><strong>Session</strong>：</p>
+<ul>
+<li>WindowManagerService 为每个客户端进程创建的唯一会话</li>
+<li>封装了客户端与 WMS 之间的通信</li>
+<li>记录客户端进程信息（UID、PID等）</li>
+</ul>
+<p><strong>WindowState</strong>：</p>
+<ul>
+<li>WindowManagerService 中表示单个窗口的实体</li>
+<li>包含窗口的所有状态信息</li>
+<li>真正的窗口管理层对象</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>完整调用链：<strong>应用 WindowManagerImpl</strong> → <strong>WindowManagerGlobal</strong> → <strong>ViewRootImpl</strong> → <strong>Session</strong> → <strong>WindowManagerService.addWindow()</strong></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io">BravestSnail</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://bravestsnail.github.io/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/01%20WindowManagerService%E6%B7%BB%E5%8A%A0View/">https://bravestsnail.github.io/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/01%20WindowManagerService%E6%B7%BB%E5%8A%A0View/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://bravestsnail.github.io" target="_blank">BravestSnail's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/images/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Framework%E5%BC%80%E5%8F%91-%E8%AE%A4%E8%AF%86Android.bp%E6%96%87%E4%BB%B6/" title="Framework开发 认识Android.bp文件"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Framework开发 认识Android.bp文件</div></div><div class="info-2"><div class="info-item-1">Android.bp 文件详解Android.bp是Android构建系统Soong的核心配置文件，用于定义模块的构建规则。它替代了传统的Android.mk文件，提供了更简洁、更强大的构建配置方式。 基本结构1. 包声明 123package &#123;    default_applicable_licenses: [&quot;Android-Apache-2.0&quot;],&#125;  定义模块的许可证信息 指定默认的许可证类型  2. 模块定义 12345android_app &#123;    name: &quot;ModuleName&quot;,    srcs: [&quot;src/**/*.java&quot;],    // 其他配置...&#125;  主要模块类型android_app - Android应用程序 12345678android_app &#123;    name: &quot;MyApp&quot;,    srcs: [&quot;src/**/*.java&quot;],    resource_dirs:...</div></div></div></a><a class="pagination-related" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/02%20Android%20%E7%AA%97%E5%8F%A3%E5%A4%9A%E7%94%A8%E6%88%B7%E6%98%BE%E7%A4%BA%E6%9C%BA%E5%88%B6/" title="02 Android 窗口多用户显示机制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">02 Android 窗口多用户显示机制</div></div><div class="info-2"><div class="info-item-1">[MODE: RESEARCH] Android 窗口多用户显示机制总结核心概念1. 用户隔离  每个用户有独立的应用和数据 窗口默认仅对创建用户可见 系统级窗口可跨用户显示  2. UID 与用户 ID 1234// UID 结构：userId * PER_USER_RANGE + appId// PER_USER_RANGE = 100000// 例如：UID 10140 = 0 * 100000 + 10140 (系统用户，SystemUI)// 例如：UID 100001 = 1 * 100000 + 1 (用户1，应用ID 1)  窗口可见性判断机制1. 主要判断方法 12345// WindowState.showToCurrentUser()boolean showToCurrentUser() &#123;    final WindowState win = getTopParentWindow();    return win.showForAllUsers() ||...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">86</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%94%E7%94%A8%E8%BF%9B%E7%A8%8B-WindowManager-%E5%88%B0-WindowManagerService-addWindow-%E8%B0%83%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90"><span class="toc-number">1.</span> <span class="toc-text">应用进程 WindowManager 到 WindowManagerService.addWindow() 调用链分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">1.1.</span> <span class="toc-text">核心调用流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%A6%E7%BB%86%E4%BB%A3%E7%A0%81%E8%B0%83%E7%94%A8%E9%93%BE"><span class="toc-number">1.2.</span> <span class="toc-text">详细代码调用链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%BB%84%E4%BB%B6%E8%AF%B4%E6%98%8E"><span class="toc-number">1.3.</span> <span class="toc-text">关键组件说明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.4.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/IO%E6%A8%A1%E5%9E%8B/" title="IO模型">IO模型</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Java%E5%B9%B6%E5%8F%91/" title="Java并发">Java并发</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Linux/%E5%9C%A8U-Boot%E7%8E%AF%E5%A2%83%E4%B8%8B%E6%9F%A5%E7%9C%8BU%E7%9B%98%E6%96%87%E4%BB%B6/" title="在U Boot环境下查看U盘文件">在U Boot环境下查看U盘文件</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Windows/wsl%E4%BB%A3%E7%90%86/" title="wsl代理">wsl代理</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Android/%E6%9D%82%E9%A1%B9/Android%20%E7%B3%BB%E7%BB%9F%E5%AF%BC%E8%88%AA%E6%A0%8F%E6%A8%A1%E5%BC%8F%E5%88%87%E6%8D%A2%E4%B8%8E%E6%9F%A5%E8%AF%A2/" title="Android 系统导航栏模式切换与查询">Android 系统导航栏模式切换与查询</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js"></script></div></body></html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>BravestSnail's Blog</title><meta name="author" content="BravestSnail"><meta name="copyright" content="BravestSnail"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta property="og:type" content="website">
+<meta property="og:title" content="BravestSnail&#39;s Blog">
+<meta property="og:url" content="https://bravestsnail.github.io/page/4/index.html">
+<meta property="og:site_name" content="BravestSnail&#39;s Blog">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://bravestsnail.github.io/images/avatar.png">
+<meta property="article:author" content="BravestSnail">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bravestsnail.github.io/images/avatar.png"><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="https://bravestsnail.github.io/page/4/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'BravestSnail\'s Blog',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script><script>if(window.mermaid){mermaid.initialize({startOnLoad:true});}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">86</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/posts/"><i class="fa-fw fas fa-archive"></i><span> Posts</span></a></div><div class="menus_item"><a class="site-page" href="/learn/"><i class="fa-fw fas fa-book"></i><span> Learn</span></a></div><div class="menus_item"><a class="site-page" href="/note/"><i class="fa-fw fas fa-sticky-note"></i><span> Note</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">BravestSnail's Blog</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/posts/"><i class="fa-fw fas fa-archive"></i><span> Posts</span></a></div><div class="menus_item"><a class="site-page" href="/learn/"><i class="fa-fw fas fa-book"></i><span> Learn</span></a></div><div class="menus_item"><a class="site-page" href="/note/"><i class="fa-fw fas fa-sticky-note"></i><span> Note</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">BravestSnail's Blog</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/persistent%E5%B1%9E%E6%80%A7%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" title="persistent属性工作流程分析">persistent属性工作流程分析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.769Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a></span></div><div class="content">sequenceDiagram ActivityManagerService ->> ActivityManagerService: systemReady ActivityManagerService ->> ActivityManagerService: startPersistentApps ActivityManagerService ->> ActivityManagerService: addAppLocked ActivityManagerService ->> ProcessList: startProcessLocked</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/compose/Compose%E4%B8%AD%E5%88%A4%E6%96%AD%E5%92%8C%E7%9B%91%E5%90%AC%E7%BD%91%E7%BB%9C%E8%BF%9E%E6%8E%A5%E7%8A%B6%E6%80%81/" title="Compose中判断和监听网络连接状态">Compose中判断和监听网络连接状态</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.769Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/compose/">compose</a></span></div><div class="content">要判断和监听网络连接状态，要使用的系统服务是 ConnectivityManager 对象，可以通过 context.getSystemService(Context.CONNECTIVITY_SERVICE) 来获得。所以首先可以定义一个Context的扩展属性来方便的获取该对象： 12private val Context.connectivityManager: ConnectivityManager    get() = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager  判断网络瞬时连接状态也就是判断当前那一刻的连接状态，一般用于请求后台接口前的检查准备工作。  如果是在Android 6.0 以下（API &lt; 23）系统版本，可以使用 ConnectivityManager 的getActiveNetworkInfo()方法先拿到返回的NetworkInfo对象，然后调用NetworkInfo的 isConnected()方法来判断。 如果是在Android 6.0...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Framework%E5%BC%80%E5%8F%91-%E5%88%86%E5%8C%BA%E4%BB%8B%E7%BB%8D/" title="Framework开发 分区介绍">Framework开发 分区介绍</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.768Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/">Framework初识</a></span></div><div class="content">Android分区架构详解1. 核心系统分区boot分区 作用： 包含Linux内核和初始RAM磁盘(initramfs) 内容： 内核、设备树、启动参数 大小： 通常16-64MB 更新频率： 较少，主要在系统升级时  system分区 作用： 包含Android系统框架和核心应用 内容： framework-res.apk、framework.jar、SystemUI等 大小： 通常1-3GB 更新频率： 经常，包含您的修改  vendor分区 作用： 包含厂商特定的驱动和HAL 内容： 硬件抽象层、厂商驱动、闭源库 大小： 通常500MB-2GB 更新频率： 中等，厂商更新时  2. 用户数据分区userdata分区 作用： 存储用户数据和已安装应用 内容： 应用数据、用户文件、设置 大小： 设备总存储的大部分 更新频率： 持续，用户使用过程中  cache分区 作用： 临时缓存和OTA更新包 内容： 系统缓存、下载的更新包 大小： 通常100-500MB 更新频率： 频繁，可被清理  3. 特殊功能分区recovery分区 作用： 系统恢复和更新环境 内容：...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Framework%E5%BC%80%E5%8F%91-%E8%AE%A4%E8%AF%86Android.bp%E6%96%87%E4%BB%B6/" title="Framework开发 认识Android.bp文件">Framework开发 认识Android.bp文件</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.768Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/">Framework初识</a></span></div><div class="content">Android.bp 文件详解Android.bp是Android构建系统Soong的核心配置文件，用于定义模块的构建规则。它替代了传统的Android.mk文件，提供了更简洁、更强大的构建配置方式。 基本结构1. 包声明 123package &#123;    default_applicable_licenses: [&quot;Android-Apache-2.0&quot;],&#125;  定义模块的许可证信息 指定默认的许可证类型  2. 模块定义 12345android_app &#123;    name: &quot;ModuleName&quot;,    srcs: [&quot;src/**/*.java&quot;],    // 其他配置...&#125;  主要模块类型android_app - Android应用程序 12345678android_app &#123;    name: &quot;MyApp&quot;,    srcs: [&quot;src/**/*.java&quot;],    resource_dirs:...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/01%20WindowManagerService%E6%B7%BB%E5%8A%A0View/" title="01 WindowManagerService添加View">01 WindowManagerService添加View</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.768Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/">Framework初识</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/">Window</a></span></div><div class="content">我来分析应用进程的 WindowManager 如何调用到 WindowManagerService.addWindow() 的完整调用链，并绘制时序图。 应用进程 WindowManager 到 WindowManagerService.addWindow() 调用链分析核心调用流程sequenceDiagram     participant App as 应用进程     participant WMI as WindowManagerImpl     participant WMG as WindowManagerGlobal     participant VRI as ViewRootImpl     participant Session as Session     participant WMS as WindowManagerService          App->>WMI: 1. addView(view, params)     Note over WMI: applyTokens(params)设置window token等    ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/02%20Android%20%E7%AA%97%E5%8F%A3%E5%A4%9A%E7%94%A8%E6%88%B7%E6%98%BE%E7%A4%BA%E6%9C%BA%E5%88%B6/" title="02 Android 窗口多用户显示机制">02 Android 窗口多用户显示机制</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.768Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/">Framework初识</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/">Window</a></span></div><div class="content">[MODE: RESEARCH] Android 窗口多用户显示机制总结核心概念1. 用户隔离  每个用户有独立的应用和数据 窗口默认仅对创建用户可见 系统级窗口可跨用户显示  2. UID 与用户 ID 1234// UID 结构：userId * PER_USER_RANGE + appId// PER_USER_RANGE = 100000// 例如：UID 10140 = 0 * 100000 + 10140 (系统用户，SystemUI)// 例如：UID 100001 = 1 * 100000 + 1 (用户1，应用ID 1)  窗口可见性判断机制1. 主要判断方法 12345// WindowState.showToCurrentUser()boolean showToCurrentUser() &#123;    final WindowState win = getTopParentWindow();    return win.showForAllUsers() ||...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90/SystemUi%20SYSTEM_ALERT%E7%B1%BB%E5%9E%8B%E7%AA%97%E5%8F%A3%E6%97%A0%E6%B3%95%E5%9C%A8%E5%AD%90%E7%94%A8%E6%88%B7%E4%B8%8B%E6%98%BE%E7%A4%BA/" title="SystemUi SYSTEM ALERT类型窗口无法在子用户下显示">SystemUi SYSTEM ALERT类型窗口无法在子用户下显示</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.768Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/">Framework初识</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/">Window</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Window/%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90/">问题分析</a></span></div><div class="content">SystemUI 在子用户下窗口不显示的问题分析 问题现象  在子用户下，SystemUI 通过 WindowManager.addView 创建的窗口不显示 窗口类型为 TYPE_SYSTEM_ALERT 或 TYPE_APPLICATION_OVERLAY  根本原因  SystemUI 使用 sharedUserId&#x3D;”android.uid.systemui”，对应 UID 10140 该 UID 被解析为系统用户（userId&#x3D;0），导致窗口归属到系统用户 多用户可见性判断依赖 mShowUserId，与当前用户不匹配时被过滤  UID 计算 12345678// UserHandle.getUserId() 实现public static @UserIdInt int getUserId(int uid) &#123;    if (MU_ENABLED) &#123;        return uid / PER_USER_RANGE;  // 10140 / 100000 = 0    &#125; else &#123;       ...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/%E5%A4%9A%E7%94%A8%E6%88%B7/Android%20%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E7%94%A8%E6%88%B7%20ID%EF%BC%88UID%EF%BC%89%E7%AE%A1%E7%90%86/" title="Android 系统中的用户 ID（UID）管理">Android 系统中的用户 ID（UID）管理</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.768Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/">Framework初识</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/%E5%A4%9A%E7%94%A8%E6%88%B7/">多用户</a></span></div><div class="content">1. UID 概述在Android操作系统中，用户ID（UID）是用于标识用户、应用和进程的重要机制。UID用于隔离不同应用之间的资源和数据，管理权限，以及优化资源使用。每个安装在设备上的应用都会被分配一个唯一的UID。 2. UID 的分类2.1 系统核心应用UID系统核心应用是Android操作系统正常运行所必需的应用，通常具有系统级别的权限。这些应用的UID通常在较低的范围内，例如0到FIRST_APPLICATION_UID - 1（FIRST_APPLICATION_UID通常为10000）。  示例： UID 0：root用户，具有最高权限。 UID 1000：system用户，用于系统服务。 UID 1001：shell用户，用于命令行工具。 UID 1002：radio用户，用于无线通信服务。 UID 1003：log用户，用于日志服务。 …：其他系统核心应用的UID。    2.2...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Context/" title="Context">Context</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.767Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a></span></div><div class="content">classDiagram  class Context { 	 	 }  class ContextImpl   class ContextWrapper  ContextImpl --|> Context ContextWrapper --|> Context ApplicationContext --|> Context  note for ContextThemeWrapper "A context wrapper that allows you to modify or replace the theme of the wrapped context." class ContextThemeWrapper { 	+ setTheme(Theme theme) }  class Activity  ContextThemeWrapper --|> ContextWrapper Application --|> ContextWrapper Service --|> ContextWrapper  class WindowProvider { 	 	+ int...</div></div></div><div class="recent-post-item"><div class="recent-post-info no-cover"><a class="article-title" href="/2025/10/27/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Android%2015/01%20Framework-%E7%AA%97%E5%8F%A3%E8%A3%85%E9%A5%B0/" title="01 Framework 窗口装饰">01 Framework 窗口装饰</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-10-27T05:06:11.767Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/">note</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/">Android</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/">Framework</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/">Framework初识</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/note/Android/Framework/Framework%E5%88%9D%E8%AF%86/Android-15/">Android 15</a></span></div><div class="content">CaptionWindowDecoration 显示方式分析1. 整体架构CaptionWindowDecoration 采用了多层Surface架构来显示窗口装饰： 12345Task Surface (任务表面)├── Decoration Container Surface (装饰容器表面)    └── Caption Container Surface (标题栏容器表面)        └── View Host (视图宿主)            └── Caption View (标题栏视图)  2. 显示机制详解A. Surface层次结构12345678910111213// 第1层：Decoration Container SurfacemDecorationContainerSurface = builder    .setName(&quot;Decor container of Task=&quot; + mTaskInfo.taskId)    .setContainerLayer()    .setParent(mTaskSurface)  //...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/3/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/#content-inner">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/#content-inner">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/#content-inner">9</a><a class="extend next" rel="next" href="/page/5/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">BravestSnail</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">86</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">25</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/IO%E6%A8%A1%E5%9E%8B/" title="IO模型">IO模型</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Java%E5%B9%B6%E5%8F%91/" title="Java并发">Java并发</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Linux/%E5%9C%A8U-Boot%E7%8E%AF%E5%A2%83%E4%B8%8B%E6%9F%A5%E7%9C%8BU%E7%9B%98%E6%96%87%E4%BB%B6/" title="在U Boot环境下查看U盘文件">在U Boot环境下查看U盘文件</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Windows/wsl%E4%BB%A3%E7%90%86/" title="wsl代理">wsl代理</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/10/27/note/Android/%E6%9D%82%E9%A1%B9/Android%20%E7%B3%BB%E7%BB%9F%E5%AF%BC%E8%88%AA%E6%A0%8F%E6%A8%A1%E5%BC%8F%E5%88%87%E6%8D%A2%E4%B8%8E%E6%9F%A5%E8%AF%A2/" title="Android 系统导航栏模式切换与查询">Android 系统导航栏模式切换与查询</a><time datetime="2025-10-27T05:06:11.777Z" title="发表于 2025-10-27 13:06:11">2025-10-27</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/learn/"><span class="card-category-list-name">learn</span><span class="card-category-list-count">15</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/learn/01-plan/"><span class="card-category-list-name">01 plan</span><span class="card-category-list-count">7</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/learn/02-%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/"><span class="card-category-list-name">02 踩坑记录</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/learn/Java%E4%BC%98%E5%8C%96/"><span class="card-category-list-name">Java优化</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/learn/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"><span class="card-category-list-name">设计模式</span><span class="card-category-list-count">2</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/note/"><span class="card-category-list-name">note</span><span class="card-category-list-count">57</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/note/Android/"><span class="card-category-list-name">Android</span><span class="card-category-list-count">51</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/note/Android/BLE/"><span class="card-category-list-name">BLE</span><span class="card-category-list-count">1</span></a></li></ul></li></ul></li>
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/Java%E5%AD%A6%E4%B9%A0/" style="font-size: 1.1em; color: #999">Java学习</a> <a href="/tags/Kotlin/" style="font-size: 1.23em; color: #999ea6">Kotlin</a> <a href="/tags/Java/" style="font-size: 1.1em; color: #999">Java</a> <a href="/tags/SharedPreferences/" style="font-size: 1.1em; color: #999">SharedPreferences</a> <a href="/tags/Activity/" style="font-size: 1.1em; color: #999">Activity</a> <a href="/tags/Android/" style="font-size: 1.5em; color: #99a9bf">Android</a> <a href="/tags/Handler/" style="font-size: 1.1em; color: #999">Handler</a> <a href="/tags/View/" style="font-size: 1.37em; color: #99a4b2">View</a> <a href="/tags/LiveData/" style="font-size: 1.23em; color: #999ea6">LiveData</a> <a href="/tags/Paging3/" style="font-size: 1.1em; color: #999">Paging3</a> <a href="/tags/PlantUML/" style="font-size: 1.1em; color: #999">PlantUML</a> <a href="/tags/%E9%97%AE%E9%A2%98/" style="font-size: 1.1em; color: #999">问题</a></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/10/">
+            <span class="card-archive-list-date">
+              十月 2025
+            </span>
+            <span class="card-archive-list-count">73</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/03/">
+            <span class="card-archive-list-date">
+              三月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2023/02/">
+            <span class="card-archive-list-date">
+              二月 2023
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/09/">
+            <span class="card-archive-list-date">
+              九月 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/08/">
+            <span class="card-archive-list-date">
+              八月 2022
+            </span>
+            <span class="card-archive-list-count">5</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/04/">
+            <span class="card-archive-list-date">
+              四月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/03/">
+            <span class="card-archive-list-date">
+              三月 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2020/04/">
+            <span class="card-archive-list-date">
+              四月 2020
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">86</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-10-28T05:23:35.961Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By BravestSnail</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script async data-pjax src="//cdn.busuanzi.cc/busuanzi/3.6.9/busuanzi.min.js"></script></div></body></html>
